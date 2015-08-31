@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier=""
+         xmlns:th="http://www.thymeleaf.org">
+    <metadata>
+        <meta content="cover-image" name="cover"/>
+        <dc-metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+            <dc:title th:text="${title}">Jindle</dc:title>
+            <dc:language th:text="${language}">en-gb</dc:language>
+            <dc:creator th:text="${creator}">jindle</dc:creator>
+            <dc:publisher th:text="${publisher}">jindle</dc:publisher>
+            <dc:subject th:text="${subject}">news</dc:subject>
+            <dc:date th:text="${date}">13 February 2011</dc:date>
+            <dc:description th:text="${description}"></dc:description>
+        </dc-metadata>
+
+        <x-metadata>
+            <output content-type="application/x-mobipocket-subscription-magazine" encoding="utf-8"/>
+        </x-metadata>
+    </metadata>
+    <manifest>
+        <item href="contents.html" media-type="application/xhtml+xml" id="contents"/>
+        <item href="nav-contents.ncx" media-type="application/x-dtbncx+xml" id="nav-contents"/>
+        <item href="" media-type="image/gif" id="cover-image"/>
+        <item href="" media-type="image/gif" id="masthead"/>
+        <div th:each="section : ${sections}" th:remove="tag">
+        <item th:href="'sections/' + ${section.href} + '/section.html'" media-type="application/xhtml+xml" th:id="'item-' + ${section.href}"/>
+        <item th:each="article : ${section.articles}" th:href="'sections/' + ${section.href} + '/' + ${article.href} + '.html'" media-type="application/xhtml+xml" th:id="'item-' + ${section.href} + ${article.href}"/>
+        </div>
+    </manifest>
+    <spine toc="nav-contents">
+        <itemref idref="contents"/>
+        <div th:each="section : ${sections}" th:remove="tag">
+        <itemref th:attr="idref='item-' + ${section.href}"/>
+        <itemref th:each="article : ${section.articles}" th:attr="idref='item-' + ${section.href} + ${article.href}"/>
+        </div>
+    </spine>
+    <guide>
+        <reference href="contents.html" type="toc" title="Table of Contents"/>
+        <reference href="sections/000/000.html" type="text" title="Beginning"/>
+    </guide>
+</package>

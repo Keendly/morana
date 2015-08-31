@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ncx xmlns:mbp="http://mobipocket.com/ns/mbp"
+     xmlns="http://www.daisy.org/z3986/2005/ncx/"
+     xmlns:th="http://www.thymeleaf.org"
+     version="2005-1" xml:lang="en-US">
+    <head>
+        <meta content="" name="dtb:uid"/>
+        <meta content="2" name="dtb:depth"/>
+        <meta content="0" name="dtb:totalPageCount"/>
+        <meta content="0" name="dtb:maxPageNumber"/>
+    </head>
+    <docTitle>
+        <text th:text="${title}">¡Olé! Magazyn</text>
+    </docTitle>
+    <docAuthor>
+        <text th:text="${creator}">jindle</text>
+    </docAuthor>
+    <navMap>
+        <navPoint th:attr="playOrder=${#ids.seq('')}" class="periodical" id="periodical">
+            <mbp:meta-img src="" name="mastheadImage"/>
+            <navLabel><text>Table of Contents</text></navLabel>
+            <content src="contents.html"/>
+            <navPoint th:each="section : ${sections}" th:attr="playOrder=${#ids.seq('')}" class="section" th:id="'item-' + ${section.href}">
+                <navLabel><text th:text="${section.title}">¡Olé! Magazyn</text></navLabel>
+                <content th:src="'sections/' + ${section.href} + '/section.html'"/>
+                <navPoint th:each="article : ${section.articles}" th:attr="playOrder=${#ids.seq('')}" class="article" th:id="'item-' + ${section.href} + ${article.href}">
+                    <navLabel><text th:text="${article.title}">Lucas – styl życia Dépor</text></navLabel>
+                    <content th:src="'sections/' + ${section.href} + '/' + ${article.href} + '.html'"/>
+                    <mbp:meta name="description"></mbp:meta>
+                    <mbp:meta name="author" th:text="${article.author}"></mbp:meta>
+                </navPoint>
+            </navPoint>
+        </navPoint>
+    </navMap>
+</ncx>
