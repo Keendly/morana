@@ -24,7 +24,7 @@ public class Generator {
     private String tempDirectory;
     private String kindleGenPath;
 
-    private Processor templateProcessor = new Processor();
+    private static Processor templateProcessor = new Processor();
 
     public Generator(String tempDirectory, String kindleGenPath){
         this.tempDirectory = tempDirectory;

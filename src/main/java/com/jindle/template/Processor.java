@@ -11,17 +11,14 @@ public class Processor {
 
     private static final String TEMPLATES_DIR = "templates/";
 
-    private TemplateEngine xmlEngine;
-    private TemplateEngine htmlEngine;
-
-    public Processor(){
-        xmlEngine = new TemplateEngine();
+    private static TemplateEngine xmlEngine = new TemplateEngine();
+    private static TemplateEngine htmlEngine = new TemplateEngine();
+    static {
         xmlEngine.setTemplateResolver(getResolver("XML"));
-        htmlEngine = new TemplateEngine();
         htmlEngine.setTemplateResolver(getResolver("XHTML"));
     }
 
-    private ClassLoaderTemplateResolver getResolver(String mode){
+    private static ClassLoaderTemplateResolver getResolver(String mode){
         ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
         templateResolver.setTemplateMode(mode);
         templateResolver.setCharacterEncoding("UTF-8");
