@@ -74,7 +74,7 @@ public class ProcessorTest {
     Article article = Article.builder()
         .title("article_title")
         .author("Hakuna Matata")
-        .content("bumbum")
+        .content("<div>test</div>")
         .build();
 
     // when
