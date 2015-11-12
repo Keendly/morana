@@ -1,5 +1,6 @@
 package com.jindle;
 
+import com.jindle.images.ImageExtractor;
 import com.jindle.kindlegen.Executor;
 import com.jindle.kindlegen.exception.KindleGenException;
 import com.jindle.kindlegen.exception.TimeoutException;
@@ -25,6 +26,7 @@ public class Generator {
     private String kindleGenPath;
 
     private static Processor templateProcessor = new Processor();
+    private static ImageExtractor imageExtractor = new ImageExtractor();
 
     public Generator(String tempDirectory, String kindleGenPath){
         this.tempDirectory = tempDirectory;
@@ -85,6 +87,8 @@ public class Generator {
     }
 
     private void saveArticle(Section section, Article article, String dir) throws IOException {
+        imageExtractor.extractImages(article, bookFilePath(dir,
+            SECTIONS_DIR + File.separator + section.getHref()));
         String content = templateProcessor.article(article);
         String filePath = sectionFilePath(dir, section, article.getHref() + ".html");
         saveToFile(filePath, content);

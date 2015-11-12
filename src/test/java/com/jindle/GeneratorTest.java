@@ -1,15 +1,16 @@
+package com.jindle;
+
 import static java.util.Arrays.*;
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
-import com.jindle.Generator;
-import com.jindle.GeneratorException;
 import com.jindle.model.Article;
 import com.jindle.model.Book;
 import com.jindle.model.Section;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
 import java.io.IOException;
 
 public class GeneratorTest {
@@ -57,9 +58,10 @@ public class GeneratorTest {
                     .title("section1")
                     .articles(asList(
                         Article.builder()
+                            .url("http://media02.hongkiat.com/translate-wordpress-themes/")
                             .title("article1")
                             .author("author1")
-                            .content("article11 content")
+                            .content("<p>text<img src=\"translate-wordpress-core.jpg\"></p>")
                             .build(),
                         Article.builder()
                             .title("article2")
