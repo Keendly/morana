@@ -70,7 +70,17 @@ public class ImageExtractor {
 
                 @Override
                 public Response onCompleted(Response response) throws Exception {
-                    saveImage(response, directory, request.getValue());
+                    String uid = generateUUID();
+                    String extension = ExtensionUtils.extractFileExtension(request.getKey().build(), response);
+                    if (StringUtils.isEmpty(extension)){
+                        LOG.warn("Empty extension for {}", request.getKey().build().getUrl());
+                        return response;
+                    }
+                    String fileName = uid + extension;
+                    String filePath = directory + File.separator + fileName;
+
+                    request.getValue().attr("src", fileName);
+                    saveImage(response.getResponseBodyAsStream(), filePath);
                     counter.countDown();
                     return response;
                 }
@@ -89,13 +99,9 @@ public class ImageExtractor {
         }
     }
 
-    private void saveImage(Response response, String directory, Element element) throws IOException {
-        InputStream is = response.getResponseBodyAsStream();
-        String uid = generateFileName();
-        String filePath = directory + File.separator + uid;
+    private void saveImage(InputStream is, String filePath) throws IOException {
         File f = new File(filePath);
         FileOutputStream fos = new FileOutputStream(f);
-        element.attr("src", uid);
         try {
             IOUtils.copy(is, fos);
         } finally {
@@ -144,7 +150,7 @@ public class ImageExtractor {
         return url;
     }
 
-    private String generateFileName(){
+    private String generateUUID(){
         return UUID.randomUUID().toString().replace("-","");
     }
 
