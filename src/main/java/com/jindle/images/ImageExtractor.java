@@ -4,7 +4,6 @@ import com.jindle.model.Article;
 import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
-import org.apache.commons.io.IOUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.util.StringUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -79,8 +79,9 @@ public class ImageExtractor {
                     String fileName = uid + extension;
                     String filePath = directory + File.separator + fileName;
 
-                    request.getValue().attr("src", fileName);
                     saveImage(response.getResponseBodyAsStream(), filePath);
+                    // point to downloaded image
+                    request.getValue().attr("src", fileName);
                     counter.countDown();
                     return response;
                 }
@@ -102,12 +103,15 @@ public class ImageExtractor {
     private void saveImage(InputStream is, String filePath) throws IOException {
         File f = new File(filePath);
         FileOutputStream fos = new FileOutputStream(f);
+
         try {
-            IOUtils.copy(is, fos);
+            byte[] compressed = new ImageCompressor().compress(is);
+            new ImageResizer().resize(new ByteArrayInputStream(compressed), f);
         } finally {
             is.close();
             fos.close();
         }
+
     }
 
     private String extractImageUrl(Element element, Article article) throws ImageExtractionException {

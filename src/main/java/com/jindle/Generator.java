@@ -1,5 +1,6 @@
 package com.jindle;
 
+import com.jindle.cover.CoverCreator;
 import com.jindle.images.ImageExtractor;
 import com.jindle.kindlegen.Executor;
 import com.jindle.kindlegen.exception.KindleGenException;
@@ -12,6 +13,7 @@ import com.jindle.utils.BookUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
@@ -27,6 +29,7 @@ public class Generator {
 
     private static Processor templateProcessor = new Processor();
     private static ImageExtractor imageExtractor = new ImageExtractor();
+    private static CoverCreator coverCreator = new CoverCreator();
 
     public Generator(String tempDirectory, String kindleGenPath){
         this.tempDirectory = tempDirectory;
@@ -38,6 +41,8 @@ public class Generator {
         String bookDirectory = UUID.randomUUID().toString();
 
         try {
+            createBookDirectory(bookDirectory);
+            saveCover(book, bookDirectory);
             saveDetailsFile(book, bookDirectory);
             saveContentsHTML(book, bookDirectory);
             saveContentsNCX(book, bookDirectory);
@@ -60,6 +65,14 @@ public class Generator {
             LOG.error("Timeout calling kindlegen", e);
             throw new GeneratorException(e);
         }
+    }
+
+    private void createBookDirectory(String bookDirectory) throws IOException {
+        FileUtils.forceMkdir(new File(bookDirPath(bookDirectory)));
+    }
+
+    private void saveCover(Book book, String dir) throws IOException {
+        coverCreator.create(book, bookFilePath(dir, "cover.jpg"));
     }
 
     private void saveDetailsFile(Book book, String dir) throws IOException {
@@ -94,8 +107,12 @@ public class Generator {
         saveToFile(filePath, content);
     }
 
+    private String bookDirPath(String bookDir){
+        return tempDirectory + File.separator + bookDir;
+    }
+
     private String bookFilePath(String bookDir, String fileName){
-        return tempDirectory + File.separator + bookDir + File.separator + fileName;
+        return bookDirPath(bookDir) + File.separator + fileName;
     }
 
     private String sectionFilePath(String bookDir, Section section, String fileName){

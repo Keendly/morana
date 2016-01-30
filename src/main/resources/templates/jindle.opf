@@ -2,7 +2,7 @@
 <package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier=""
          xmlns:th="http://www.thymeleaf.org">
     <metadata>
-        <meta content="cover-image" name="cover"/>
+        <meta name="cover" content="cover-image"/>
         <dc-metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
             <dc:title th:text="${title}">Jindle</dc:title>
             <dc:language th:text="${language}">en-gb</dc:language>
@@ -20,7 +20,7 @@
     <manifest>
         <item href="contents.html" media-type="application/xhtml+xml" id="contents"/>
         <item href="nav-contents.ncx" media-type="application/x-dtbncx+xml" id="nav-contents"/>
-        <item href="" media-type="image/gif" id="cover-image"/>
+        <item href="cover.jpg" media-type="image/jpeg" id="cover-image"/>
         <item href="" media-type="image/gif" id="masthead"/>
         <div th:each="section : ${sections}" th:remove="tag">
         <item th:href="'sections/' + ${section.href} + '/section.html'" media-type="application/xhtml+xml" th:id="'item-' + ${section.href}"/>

@@ -17,6 +17,7 @@
         <jsoup.version>1.8.3</jsoup.version>
         <async-http-client.version>1.9.31</async-http-client.version>
         <apache-tika.version>1.9</apache-tika.version>
+        <imgscalr.version>4.2</imgscalr.version>
 	</properties>
 	<repositories>
 		<repository>
@@ -91,6 +92,12 @@
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-core</artifactId>
             <version>${apache-tika.version}</version>
+        </dependency>
+        <!-- ImageScalr -->
+        <dependency>
+            <groupId>org.imgscalr</groupId>
+            <artifactId>imgscalr-lib</artifactId>
+            <version>${imgscalr.version}</version>
         </dependency>
         <!-- Test -->
         <dependency>

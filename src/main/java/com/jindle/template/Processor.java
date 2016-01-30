@@ -26,6 +26,10 @@ public class Processor {
         return templateResolver;
     }
 
+    public String cover(Book book){
+        return xmlEngine.process("cover.html", bookToContext(book));
+    }
+
     public String details(Book book){
         return xmlEngine.process("jindle.opf", bookToContext(book));
     }
