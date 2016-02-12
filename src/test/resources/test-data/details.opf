@@ -1,6 +1,6 @@
 <package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="">
     <metadata>
-        <meta content="cover-image" name="cover" />
+        <meta name="cover" content="cover-image"/>
         <dc-metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
             <dc:title>TEST_BOOK</dc:title>
             <dc:language>en-gb</dc:language>
@@ -18,7 +18,7 @@
     <manifest>
         <item href="contents.html" media-type="application/xhtml+xml" id="contents"></item>
         <item href="nav-contents.ncx" media-type="application/x-dtbncx+xml" id="nav-contents"></item>
-        <item href="" media-type="image/gif" id="cover-image"></item>
+        <item href="cover.jpg" media-type="image/jpeg" id="cover-image"/>
         <item href="" media-type="image/gif" id="masthead"></item>
         <item media-type="application/xhtml+xml" href="sections/000/section.html" id="item-000"></item>
         <item media-type="application/xhtml+xml" href="sections/000/000.html" id="item-000000"></item>

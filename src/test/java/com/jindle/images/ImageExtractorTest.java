@@ -76,8 +76,7 @@ public class ImageExtractorTest {
     @Test
     public void testExtract_absoluteURL(){
         String URL = "http://media02.hongkiat.com/translate-wordpress-themes/translate-wordpress-core.jpg";
-        String HTML = "<p>text<img src=\"" + URL + "\"></p>";
-
+        String HTML = "<p>Allowing clients to manage their websites in their native languages is an important aspect of <a href=\"http://www.hongkiat.com/blog/accessibility-design-needs/\" target=\"_blank\">accessibility</a>. If you develop a WordPress site that may have <strong>users from non-English speaking countries</strong>, it can be necessary to translate the theme.</p><p>Localizing the theme doesn’t mean you translate the content on the frontend such as posts and pages; instead, it refers to the <strong>theme-related content</strong> in the admin area: the theme’s description, options, and the customizer.</p><img src=\"http://media02.hongkiat.com/translate-wordpress-themes/translate-wordpress-core.jpg\">";
         // given
         Article article = Article.builder().content(HTML).build();
 
