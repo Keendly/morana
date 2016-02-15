@@ -8,6 +8,7 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jindle.cover.CoverCreator;
 import com.jindle.images.ImageExtractor;
@@ -20,6 +21,7 @@ import com.jindle.model.Section;
 import com.jindle.template.Processor;
 import com.jindle.utils.BookUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,15 +143,18 @@ public class Generator {
         return executor.run();
     }
 
-    private static final String KINDLE_GEN_PATH = "/opt/kindlegen/kindlegen";
     private static final String QUEUE_URL = "https://sqs.eu-west-1.amazonaws.com/625416862388/generation-queue";
     private static final int QUEUE_POLL_INTERVAL = 30; // seconds
 
-    private static Generator generator = new Generator("/tmp", KINDLE_GEN_PATH);
     private static AmazonS3Client amazonS3Client = new AmazonS3Client();
     private static AmazonSQSClient amazonSQSClient = new AmazonSQSClient();
 
+    private static Generator generator;
+
     public static void main(String[] args){
+        String kindleGenPath = args[0];
+        generator = new Generator("/tmp", kindleGenPath);
+
         while (true){
             LOG.debug("Polling for messages...");
             ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(QUEUE_URL).withMaxNumberOfMessages(2);
@@ -158,8 +163,13 @@ public class Generator {
                 if (!messages.isEmpty()){
                     LOG.info("Got {} messages from queue", messages.size());
                     for (Message message : messages){
+                        MDC.put("messageId", message.getMessageId());
+                        LOG.info("Processing started");
                         processMessage(message);
+                        amazonSQSClient.deleteMessage(QUEUE_URL, message.getReceiptHandle());
+                        LOG.info("Processing finished");
                     }
+                    MDC.clear();
                 } else {
                     LOG.debug("No messages received from queue, going to sleep for {} seconds", QUEUE_POLL_INTERVAL);
                         Thread.sleep(QUEUE_POLL_INTERVAL * 1000);
@@ -190,7 +200,8 @@ public class Generator {
 
     private static Book fetchBookMetadata(GenerateMessage message) throws IOException {
         S3Object ebookObj = amazonS3Client.getObject(new GetObjectRequest(message.bucket, message.key));
-        return new ObjectMapper().readValue(ebookObj.getObjectContent(), Book.class);
+        return new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .readValue(ebookObj.getObjectContent(), Book.class);
     }
 
     private static void storeEbookToS3(String bucket, String key, String filePath){
@@ -203,8 +214,8 @@ public class Generator {
     }
 
     private static class GenerateMessage {
-        String bucket;
-        String key;
+        public String bucket;
+        public String key;
     }
 }
 
