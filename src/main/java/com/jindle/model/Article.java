@@ -1,13 +1,17 @@
 package com.jindle.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
 
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
 @Builder
-@Getter
 public class Article extends Numbered {
 
     private String url;

@@ -5,13 +5,13 @@ import lombok.Getter;
 public class KindleGenException extends Exception {
 
   @Getter
-  private int exiteValue;
+  private int exitValue;
 
   @Getter
   private String output;
 
-  public KindleGenException(int exiteValue, String kindleGenOutput){
-    this.exiteValue = exiteValue;
+  public KindleGenException(int exitValue, String kindleGenOutput){
+    this.exitValue = exitValue;
     this.output = kindleGenOutput;
   }
 

@@ -1,5 +1,14 @@
 package com.jindle;
 
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectResult;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.sqs.AmazonSQSClient;
+import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jindle.cover.CoverCreator;
 import com.jindle.images.ImageExtractor;
 import com.jindle.kindlegen.Executor;
@@ -16,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 public class Generator {
@@ -58,7 +68,7 @@ public class Generator {
             LOG.error("Couldn't generate ebook", e);
             throw new GeneratorException(e);
         } catch (KindleGenException e){
-            LOG.error("Error calling kindlegen, exit value: " + e.getExiteValue(), e);
+            LOG.error("Error calling kindlegen, exit value: " + e.getExitValue(), e);
             LOG.debug(e.getOutput());
             throw new GeneratorException(e);
         } catch (TimeoutException e) {
@@ -129,6 +139,72 @@ public class Generator {
         String workingDirectory = tempDirectory + File.separator + bookDirectory;
         Executor executor = new Executor(kindleGenPath, workingDirectory, OPF_FILE_NAME);
         return executor.run();
+    }
+
+    private static final String KINDLE_GEN_PATH = "/opt/kindlegen/kindlegen";
+    private static final String QUEUE_URL = "https://sqs.eu-west-1.amazonaws.com/625416862388/generation-queue";
+    private static final int QUEUE_POLL_INTERVAL = 30; // seconds
+
+    private static Generator generator = new Generator("/tmp", KINDLE_GEN_PATH);
+    private static AmazonS3Client amazonS3Client = new AmazonS3Client();
+    private static AmazonSQSClient amazonSQSClient = new AmazonSQSClient();
+
+    public static void main(String[] args){
+        while (true){
+            LOG.debug("Polling for messages...");
+            ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(QUEUE_URL).withMaxNumberOfMessages(2);
+            List<Message> messages = amazonSQSClient.receiveMessage(receiveMessageRequest).getMessages();
+            try {
+                if (!messages.isEmpty()){
+                    LOG.info("Got {} messages from queue", messages.size());
+                    for (Message message : messages){
+                        processMessage(message);
+                    }
+                } else {
+                    LOG.debug("No messages received from queue, going to sleep for {} seconds", QUEUE_POLL_INTERVAL);
+                        Thread.sleep(QUEUE_POLL_INTERVAL * 1000);
+                }
+            } catch (InterruptedException e){
+                LOG.error("AAAAA", e);
+            } catch (GeneratorException e) {
+                LOG.error("Exception generating ebook", e);
+            } catch (IOException e) {
+                LOG.error("Excetpion during deserializaton", e);
+            }
+        }
+    }
+
+    private static void processMessage(Message msg) throws IOException, GeneratorException {
+        GenerateMessage generateMessage = deserializeMessage(msg);
+        LOG.debug("Deserialized message: {}", msg.getBody());
+        Book book = fetchBookMetadata(generateMessage);
+        LOG.debug("Ebook metadata fetched from S3");
+        String ebookPath = generator.generate(book);
+        LOG.debug("Ebook generated in {}", ebookPath);
+        storeEbookToS3(generateMessage.bucket, extractFileName(generateMessage.key) + ".mobi", ebookPath);
+    }
+
+    private static GenerateMessage deserializeMessage(Message msg) throws IOException {
+        return new ObjectMapper().readValue(msg.getBody(), GenerateMessage.class);
+    }
+
+    private static Book fetchBookMetadata(GenerateMessage message) throws IOException {
+        S3Object ebookObj = amazonS3Client.getObject(new GetObjectRequest(message.bucket, message.key));
+        return new ObjectMapper().readValue(ebookObj.getObjectContent(), Book.class);
+    }
+
+    private static void storeEbookToS3(String bucket, String key, String filePath){
+        PutObjectResult result = amazonS3Client.putObject(new PutObjectRequest(bucket, key, new File(filePath)));
+        LOG.debug("File stored in S3, key: {}, etag: {}", key, result.getETag());
+    }
+
+    private static String extractFileName(String key){
+        return key.substring(0, key.lastIndexOf("."));
+    }
+
+    private static class GenerateMessage {
+        String bucket;
+        String key;
     }
 }
 

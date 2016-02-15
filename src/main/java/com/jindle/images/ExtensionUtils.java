@@ -43,7 +43,7 @@ public class ExtensionUtils {
                     byte[] responseBytes = response.getResponseBodyAsBytes();
                     contentType = URLConnection.guessContentTypeFromStream(new ByteArrayInputStream(responseBytes));
                 } catch (IOException e) {
-                    LOG.warn("Error tyring to guest content type from stream", e);
+                    LOG.warn("Error tyring to guess content type from stream", e);
                 }
             }
         }

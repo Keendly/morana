@@ -48,9 +48,11 @@ public class ImageExtractor {
         for (Element element : elements){
             try {
                 String url = extractImageUrl(element, article);
+                LOG.debug("Downloading image: {}", url);
                 AsyncHttpClient.BoundRequestBuilder get = asyncHttpClient.prepareGet(url).setFollowRedirects(true).setRequestTimeout(REQUEST_TIMEOUT);
                 requests.put(get, element);
             } catch (ImageExtractionException e){
+                LOG.warn("Couldn't extract url from " + element.html(), e);
                 continue;
             }
         }
