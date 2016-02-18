@@ -179,7 +179,7 @@ public class Generator {
             } catch (GeneratorException e) {
                 LOG.error("Exception generating ebook", e);
             } catch (IOException e) {
-                LOG.error("Excetpion during deserializaton", e);
+                LOG.error("Exception during deserializaton", e);
             }
         }
     }
@@ -213,7 +213,7 @@ public class Generator {
         return key.substring(0, key.lastIndexOf("."));
     }
 
-    private static class GenerateMessage {
+    static class GenerateMessage {
         public String bucket;
         public String key;
     }
