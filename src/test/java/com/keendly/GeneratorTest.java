@@ -15,7 +15,7 @@ import java.io.IOException;
 
 public class GeneratorTest {
 
-    private Generator generator = new Generator("/tmp", "/home/radek/software/kindlegen/kindlegen");
+    private Generator generator = new Generator("/tmp", System.getenv().get("KIDLEGEN_PATH"));
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();

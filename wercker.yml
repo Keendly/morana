@@ -1,5 +1,14 @@
 box: maven:latest
 build:
   steps:
+    - script:
+        name: download kindlegen
+        code: |
+            mkdir -r /opt/kindlegen
+            wget "http://kindlegen.s3.amazonaws.com/kindlegen_linux_2.6_i386_v2_9.tar.gz"
+            tar -zxf kindlegen_linux_2.6_i386_v2_9.tar.gz
+            cp kindlegen /opt/kindlegen/
+            export KIDLEGEN_PATH=/opt/kindlegen/kindlegen
+
     - xenoterracide/maven:
-        goals: test
+        goals: package
