@@ -2,11 +2,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.jindle</groupId>
-    <artifactId>jindle</artifactId>
+    <groupId>com.keendly</groupId>
+    <artifactId>jarilo</artifactId>
     <packaging>jar</packaging>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Jindle</name>
+    <name>Jarilo</name>
     <properties>
         <thymeleaf.version>2.1.4.RELEASE</thymeleaf.version>
         <junit.version>4.12</junit.version>
@@ -20,6 +20,7 @@
         <apache-tika.version>1.9</apache-tika.version>
         <imgscalr.version>4.2</imgscalr.version>
         <aws-sdk.version>1.10.52</aws-sdk.version>
+        <protobuf.version>2.6.1</protobuf.version>
     </properties>
     <repositories>
         <repository>
@@ -66,7 +67,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.jindle.Generator</mainClass>
+                            <mainClass>com.keendly.Generator</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -142,6 +143,12 @@
             <groupId>org.imgscalr</groupId>
             <artifactId>imgscalr-lib</artifactId>
             <version>${imgscalr.version}</version>
+        </dependency>
+        <!-- Protobuf -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>${protobuf.version}</version>
         </dependency>
         <!-- Test -->
         <dependency>

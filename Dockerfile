@@ -1,15 +1,19 @@
 FROM java:8
 MAINTAINER MoOmEeN <moomeen@gmail.com>
 
-RUN mkdir -p /opt/jindle
-RUN mkdir /opt/jindle/log
+ENV PROJECT_DIR /opt/jarilo
+
+RUN mkdir -p $PROJECT_DIR
+RUN mkdir $PROJECT_DIR/log
 
 RUN wget "http://kindlegen.s3.amazonaws.com/kindlegen_linux_2.6_i386_v2_9.tar.gz" && \
     tar -zxf kindlegen_linux_2.6_i386_v2_9.tar.gz && \
-    cp kindlegen /opt/jindle/
+    cp kindlegen $PROJECT_DIR
 
-RUN chmod +x /opt/jindle/kindlegen
+ENV KINDLEGEN_PATH $PROJECT_DIR/kindlegen
+RUN chmod +x $KINDLEGEN_PATH
 
-COPY target/jindle*.jar /opt/jindle/jindle.jar
+COPY target/jarilo*.jar $PROJECT_DIR/jarilo.jar
+ENV JAR_PATH $PROJECT_DIR/jarilo.jar
 
-ENTRYPOINT ["java", "-jar", "/opt/jindle/jindle.jar", "/opt/jindle/kindlegen"]
+CMD java -jar $JAR_PATH $KINDLEGEN_PATH
