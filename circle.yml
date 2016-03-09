@@ -1,6 +1,8 @@
 machine:
   java:
     version: oraclejdk8
+  environment:
+    KINDLEGEN_PATH: /opt/kindlegen/kindlegen
 
 test:
   pre:
@@ -10,5 +12,4 @@ test:
     - cp kindlegen /opt/kindlegen/
   override:
     - mvn test
-        environment:
-            KINDLEGEN_PATH: /opt/kindlegen/kindlegen
+
