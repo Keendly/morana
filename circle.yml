@@ -16,7 +16,7 @@ test:
   override:
     - mvn test
 
-deploy:
+deployment:
   pre:
     - mvn package
     - docker build -t jarilo .
