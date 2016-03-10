@@ -1,15 +1,23 @@
 machine:
   java:
     version: oraclejdk8
+  services:
+    - docker
   environment:
-    KINDLEGEN_PATH: /opt/kindlegen/kindlegen
+    KINDLEGEN_PATH: $HOME/kindlegen/kindlegen
 
 test:
   pre:
-    - mkdir -p /opt/kindlegen
+    - pwd
+    - mkdir -p $HOME/kindlegen
     - wget "http://kindlegen.s3.amazonaws.com/kindlegen_linux_2.6_i386_v2_9.tar.gz"
     - tar -zxf kindlegen_linux_2.6_i386_v2_9.tar.gz
-    - cp kindlegen /opt/kindlegen/
+    - cp kindlegen $HOME/kindlegen/
   override:
     - mvn test
+
+deploy:
+  pre:
+    - mvn package
+    - docker build -t jarilo .
 
