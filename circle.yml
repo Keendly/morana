@@ -7,8 +7,7 @@ machine:
     KINDLEGEN_PATH: $HOME/kindlegen/kindlegen
 
 test:
-  pre:
-    - pwd
+  pre:3
     - mkdir -p $HOME/kindlegen
     - wget "http://kindlegen.s3.amazonaws.com/kindlegen_linux_2.6_i386_v2_9.tar.gz"
     - tar -zxf kindlegen_linux_2.6_i386_v2_9.tar.gz
@@ -18,6 +17,7 @@ test:
 
 deployment:
   pre:
-    - mvn package
-    - docker build -t jarilo .
+    commands:
+      - mvn package
+      - docker build -t jarilo .
 
