@@ -16,7 +16,8 @@ test:
     - mvn test
 
 deployment:
-  pre:
+  master:
+    branch: master
     commands:
       - mvn package
       - docker build -t jarilo .
