@@ -1,9 +1,10 @@
-FROM java:8
+FROM alpine:3.3
 MAINTAINER MoOmEeN <moomeen@gmail.com>
 
-ENV PROJECT_DIR /opt/jarilo
+RUN apk add openjdk8-jre-base --update \
+    && rm -rf /var/cache/apk/*
 
-RUN echo $HOME
+ENV PROJECT_DIR /opt/jarilo
 
 RUN mkdir -p $PROJECT_DIR
 RUN mkdir $PROJECT_DIR/log
