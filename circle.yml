@@ -14,11 +14,14 @@ test:
     - cp kindlegen $HOME/kindlegen/
   override:
     - mvn test
+  post:
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+    - find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
 
 deployment:
   master:
     branch: master
     commands:
-      - mvn package
+      - mvn package -DskipTests
       - docker build -t jarilo .
 
