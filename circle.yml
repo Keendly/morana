@@ -23,6 +23,6 @@ deployment:
     branch: master
     commands:
       - mvn package -DskipTests
-      - find . -type f regex ".*/target/jarilo*.jar" -exec cp {} $CIRCLE_ARTIFACTS/ \;
+      - find . -type f -regex ".*/target/jarilo*.jar" -exec cp {} $CIRCLE_ARTIFACTS/ \;
       - docker build -t jarilo .
 
