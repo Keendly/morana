@@ -7,7 +7,7 @@ machine:
     KINDLEGEN_PATH: $HOME/kindlegen/kindlegen
 
 test:
-  pre:3
+  pre:
     - mkdir -p $HOME/kindlegen
     - wget "http://kindlegen.s3.amazonaws.com/kindlegen_linux_2.6_i386_v2_9.tar.gz"
     - tar -zxf kindlegen_linux_2.6_i386_v2_9.tar.gz
