@@ -25,4 +25,8 @@ deployment:
       - mvn package -DskipTests
       - find . -type f -regex ".*/target/jarilo.*.jar" -exec cp {} $CIRCLE_ARTIFACTS/ \;
       - docker build -t jarilo .
+      - pip install awscli
+      - aws ecr get-login --region us-east-1 | sh
+      - docker tag jarilo:latest 625416862388.dkr.ecr.us-east-1.amazonaws.com/jarilo:latest
+      - docker push 625416862388.dkr.ecr.us-east-1.amazonaws.com/jarilo:latest
 
