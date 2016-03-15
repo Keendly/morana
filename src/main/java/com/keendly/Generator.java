@@ -74,7 +74,7 @@ public class Generator {
             throw new GeneratorException(e);
         } catch (KindleGenException e){
             LOG.error("Error calling kindlegen, exit value: " + e.getExitValue(), e);
-            LOG.debug(e.getOutput());
+            LOG.error(e.getOutput());
             throw new GeneratorException(e);
         } catch (TimeoutException e) {
             LOG.error("Timeout calling kindlegen", e);
