@@ -7,6 +7,7 @@ import static org.junit.Assert.*;
 import com.keendly.model.Article;
 import com.keendly.model.Book;
 import com.keendly.model.Section;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -86,5 +87,17 @@ public class GeneratorTest {
             )).build();
 
         return book;
+    }
+
+    @Ignore
+    @Test
+    public void test() throws IOException, GeneratorException {
+        Generator.GenerateMessage msg = new Generator.GenerateMessage();
+        msg.bucket = "keendly";
+        msg.key = "deliveries/20160319000247370_bHYba/generate_ebook.req";
+        Book b = Generator.fetchBookMetadata(msg);
+
+        String a = generator.generate(b);
+        System.out.println(a);
     }
 }

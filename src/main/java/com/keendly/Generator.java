@@ -136,7 +136,7 @@ public class Generator {
     }
 
     private void saveToFile(String filePath, String content) throws IOException {
-        FileUtils.writeStringToFile(new File(filePath), content);
+        FileUtils.writeStringToFile(new File(filePath), content, "UTF-8");
     }
 
     private String generateMobi(String bookDirectory)
@@ -210,7 +210,8 @@ public class Generator {
         return new ObjectMapper().readValue(msg.getBody(), GenerateMessage.class);
     }
 
-    private static Book fetchBookMetadata(GenerateMessage message) throws IOException {
+    // public for test
+    public static Book fetchBookMetadata(GenerateMessage message) throws IOException {
         S3Object ebookObj = amazonS3Client.getObject(new GetObjectRequest(message.bucket, message.key));
         GenerateProtos.GenerateEbookRequest req =
             GenerateProtos.GenerateEbookRequest.parseFrom(ebookObj.getObjectContent());
