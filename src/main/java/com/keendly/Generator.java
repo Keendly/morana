@@ -166,12 +166,15 @@ public class Generator {
                 if (!messages.isEmpty()){
                     LOG.info("Got {} messages from queue", messages.size());
                     for (Message message : messages){
+                        GenerateMessage generateMessage = deserializeMessage(message);
                         try {
                             MDC.put("messageId", message.getMessageId());
                             LOG.info("Processing started");
-                            processMessage(message);
+                            processMessage(generateMessage);
                             LOG.info("Processing finished");
                         } catch (Exception e){
+                            String ebookDir = extractDir(generateMessage.key);
+                            storeGenerationFailResponse(generateMessage.bucket, ebookDir  + "/generate_ebook.res", e.getMessage());
                             throw e;
                         } finally {
                             amazonSQSClient.deleteMessage(QUEUE_URL, message.getReceiptHandle());
@@ -194,8 +197,7 @@ public class Generator {
         }
     }
 
-    private static void processMessage(Message msg) throws IOException, GeneratorException {
-        GenerateMessage generateMessage = deserializeMessage(msg);
+    private static void processMessage(GenerateMessage generateMessage) throws IOException, GeneratorException {
         LOG.debug("Deserialized message: {}", msg.getBody());
         Book book = fetchBookMetadata(generateMessage);
         LOG.debug("Ebook metadata fetched from S3");
@@ -203,7 +205,7 @@ public class Generator {
         LOG.debug("Ebook generated in {}", ebookPath);
         String ebookKey = extractDir(generateMessage.key) + "/keendly.mobi";
         storeEbookToS3(generateMessage.bucket, ebookKey, ebookPath);
-        storeGenerationResponse(generateMessage.bucket, ebookKey, extractDir(generateMessage.key) + "/generate_ebook.res");
+        storeGenerationSuccessResponse(generateMessage.bucket, ebookKey, extractDir(generateMessage.key) + "/generate_ebook.res");
     }
 
     private static GenerateMessage deserializeMessage(Message msg) throws IOException {
@@ -254,7 +256,7 @@ public class Generator {
         LOG.debug("Ebook stored in S3, key: {}, etag: {}", key, result.getETag());
     }
 
-    private static void storeGenerationResponse(String bucket, String ebookKey, String responseKey) throws IOException {
+    private static void storeGenerationSuccessResponse(String bucket, String ebookKey, String responseKey) throws IOException {
         GenerateProtos.GenerateEbookResponse.Builder builder = GenerateProtos.GenerateEbookResponse.newBuilder();
         GenerateProtos.GenerateEbookResponse.File.Builder fileBuilder =
             GenerateProtos.GenerateEbookResponse.File.newBuilder();
@@ -262,6 +264,20 @@ public class Generator {
         fileBuilder.setKey(ebookKey);
         builder.setPath(fileBuilder.build());
         builder.setSuccess(true);
+        File f = new File("/tmp/" + UUID.randomUUID().toString());
+        f.createNewFile();
+        FileOutputStream fos = new FileOutputStream(f);
+        builder.build().writeTo(fos);
+        PutObjectResult result = amazonS3Client.putObject(new PutObjectRequest(bucket, responseKey, f));
+        LOG.debug("Response message in S3, key: {}, etag: {}", responseKey, result.getETag());
+    }
+
+    private static void storeGenerationFailResponse(String bucket, String responseKey, String error) throws IOException {
+        GenerateProtos.GenerateEbookResponse.Builder builder = GenerateProtos.GenerateEbookResponse.newBuilder();
+        GenerateProtos.GenerateEbookResponse.File.Builder fileBuilder =
+            GenerateProtos.GenerateEbookResponse.File.newBuilder();
+        builder.setSuccess(false);
+        builder.setErrorDescription(error);
         File f = new File("/tmp/" + UUID.randomUUID().toString());
         f.createNewFile();
         FileOutputStream fos = new FileOutputStream(f);
