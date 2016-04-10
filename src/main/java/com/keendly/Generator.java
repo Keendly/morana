@@ -167,6 +167,7 @@ public class Generator {
                     LOG.info("Got {} messages from queue", messages.size());
                     for (Message message : messages){
                         GenerateMessage generateMessage = deserializeMessage(message);
+                        LOG.debug("Deserialized message: {}", message.getBody());
                         try {
                             MDC.put("messageId", message.getMessageId());
                             LOG.info("Processing started");
@@ -198,7 +199,6 @@ public class Generator {
     }
 
     private static void processMessage(GenerateMessage generateMessage) throws IOException, GeneratorException {
-        LOG.debug("Deserialized message: {}", msg.getBody());
         Book book = fetchBookMetadata(generateMessage);
         LOG.debug("Ebook metadata fetched from S3");
         String ebookPath = generator.generate(book);
