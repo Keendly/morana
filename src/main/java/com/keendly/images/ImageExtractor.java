@@ -54,6 +54,9 @@ public class ImageExtractor {
             } catch (ImageExtractionException e){
                 LOG.warn("Couldn't extract url from {}, ignoring element", element.html());
                 element.remove();
+            } catch (Exception e){
+                LOG.warn("Unexpected error trying to extract url from {}, ignoring element", element.html());
+                element.remove();
             }
         }
         if (requests.isEmpty()){
