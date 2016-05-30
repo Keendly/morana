@@ -40,11 +40,11 @@ public class Generator {
     private static final String OPF_FILE_NAME = "jindle.opf";
 
     private String tempDirectory;
-    private String kindleGenPath;
 
     private static Processor templateProcessor = new Processor();
-    private static ImageExtractor imageExtractor = new ImageExtractor();
     private static CoverCreator coverCreator = new CoverCreator();
+
+    private ImageExtractor imageExtractor = new ImageExtractor();
 
     public Generator(String tempDirectory, String kindleGenPath){
         this.tempDirectory = tempDirectory;
@@ -152,11 +152,10 @@ public class Generator {
     private static AmazonS3Client amazonS3Client = new AmazonS3Client();
     private static AmazonSQSClient amazonSQSClient = new AmazonSQSClient();
 
-    private static Generator generator;
+    private static String kindleGenPath;
 
     public static void main(String[] args){
-        String kindleGenPath = args[0];
-        generator = new Generator("/tmp", kindleGenPath);
+        kindleGenPath = args[0];
 
         while (true){
             LOG.debug("Polling for messages...");
@@ -201,7 +200,7 @@ public class Generator {
     private static void processMessage(GenerateMessage generateMessage) throws IOException, GeneratorException {
         Book book = fetchBookMetadata(generateMessage);
         LOG.debug("Ebook metadata fetched from S3");
-        String ebookPath = generator.generate(book);
+        String ebookPath = new Generator("/tmp", kindleGenPath).generate(book);
         LOG.debug("Ebook generated in {}", ebookPath);
         String ebookKey = extractDir(generateMessage.key) + "/keendly.mobi";
         storeEbookToS3(generateMessage.bucket, ebookKey, ebookPath);

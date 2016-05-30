@@ -10,7 +10,7 @@ import java.io.InputStreamReader;
 
 public class Executor {
 
-  private static final long TIMEOUT = 60 * 10000; //1 min;
+  private static final long TIMEOUT = 60 * 5000; // 5 min;
   private static final String RESULT_FILE_NAME = "keendly.mobi";
 
   private String kindleGenPath;

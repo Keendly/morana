@@ -21,15 +21,19 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ImageExtractor {
 
     private static final Logger LOG = LoggerFactory.getLogger(ImageExtractor.class);
-    private static final int REQUEST_TIMEOUT = 5 * 60 * 1000;// 5 minutes
+    private static final int REQUEST_TIMEOUT = 60 * 1000;// 1 minute
+    private static final int MAX_IMAGES = 300; // max number of images to extract
 
     private AsyncHttpClient asyncHttpClient;
 
@@ -41,16 +45,37 @@ public class ImageExtractor {
         this.asyncHttpClient = httpClient;
     }
 
+    private AtomicInteger imagesCount = new AtomicInteger(0);
+
     public void extractImages(Article article, String directory) {
         Document document = Jsoup.parse(article.getContent());
         Elements elements = document.select("img");
-        Map<AsyncHttpClient.BoundRequestBuilder, Element> requests = new HashMap<>();
+
+        if (imagesCount.get() >= MAX_IMAGES){
+            LOG.warn("Reached max number of images: {}, skipping", MAX_IMAGES);
+            elements.remove();
+            return;
+        }
+
+        Map<String, AsyncHttpClient.BoundRequestBuilder> urls = new HashMap<>();
+        Map<AsyncHttpClient.BoundRequestBuilder, List<Element>> requests = new HashMap<>();
         for (Element element : elements){
+
+
             try {
                 String url = extractImageUrl(element, article);
-                LOG.debug("Downloading image: {}", url);
-                AsyncHttpClient.BoundRequestBuilder get = asyncHttpClient.prepareGet(url).setFollowRedirects(true).setRequestTimeout(REQUEST_TIMEOUT);
-                requests.put(get, element);
+                if (urls.containsKey(url)){
+                    LOG.debug("Request already exists for url: {}", url);
+                    requests.get(url).add(element);
+                } else {
+                    LOG.debug("Downloading image: {}", url);
+                    AsyncHttpClient.BoundRequestBuilder get = asyncHttpClient.prepareGet(url).setFollowRedirects(true).setRequestTimeout(REQUEST_TIMEOUT);
+                    urls.put(url, get);
+                    List<Element> list = new ArrayList<>();
+                    list.add(element);
+                    requests.put(get, list);
+                    imagesCount.incrementAndGet();
+                }
             } catch (ImageExtractionException e){
                 LOG.warn("Couldn't extract url from {}, ignoring element", element.html());
                 element.remove();
@@ -67,10 +92,10 @@ public class ImageExtractor {
         return;
     }
 
-    private void runRequests(final String directory, Map<AsyncHttpClient.BoundRequestBuilder, Element> requests) {
+    private void runRequests(final String directory, Map<AsyncHttpClient.BoundRequestBuilder, List<Element>> requests) {
         CountDownLatch counter = new CountDownLatch(requests.size());
 
-        for (Map.Entry<AsyncHttpClient.BoundRequestBuilder, Element> request : requests.entrySet()){
+        for (Map.Entry<AsyncHttpClient.BoundRequestBuilder, List<Element>> request : requests.entrySet()){
             request.getKey().execute(new AsyncCompletionHandler<Response>() {
 
                 @Override
@@ -87,7 +112,9 @@ public class ImageExtractor {
 
                     saveImage(response.getResponseBodyAsStream(), filePath);
                     // point to downloaded image
-                    request.getValue().attr("src", fileName);
+                    for (Element element : request.getValue()){
+                        element.attr("src", fileName);
+                    }
                     counter.countDown();
                     return response;
                 }
