@@ -60,8 +60,6 @@ public class ImageExtractor {
         Map<String, AsyncHttpClient.BoundRequestBuilder> urls = new HashMap<>();
         Map<AsyncHttpClient.BoundRequestBuilder, List<Element>> requests = new HashMap<>();
         for (Element element : elements){
-
-
             try {
                 String url = extractImageUrl(element, article);
                 if (urls.containsKey(url)){
@@ -89,6 +87,9 @@ public class ImageExtractor {
         }
         runRequests(directory, requests);
         article.setContent(document.body().html());
+
+        // trying to fix the memory leak by closing the connections
+        asyncHttpClient.closeAsynchronously();
         return;
     }
 
