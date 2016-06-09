@@ -12,11 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.util.StringUtils;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -31,9 +31,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ImageExtractor {
 
+    public static int MAX_IMAGES = 300; // max number of images to extract
+
     private static final Logger LOG = LoggerFactory.getLogger(ImageExtractor.class);
     private static final int REQUEST_TIMEOUT = 60 * 1000;// 1 minute
-    private static final int MAX_IMAGES = 300; // max number of images to extract
+
+    private static final ImageResizer imageResizer = new ImageResizer();
 
     private AsyncHttpClient asyncHttpClient;
 
@@ -87,10 +90,11 @@ public class ImageExtractor {
         }
         runRequests(directory, requests);
         article.setContent(document.body().html());
-
-        // trying to fix the memory leak by closing the connections
-        asyncHttpClient.closeAsynchronously();
         return;
+    }
+
+    public void close(){
+        asyncHttpClient.close();
     }
 
     private void runRequests(final String directory, Map<AsyncHttpClient.BoundRequestBuilder, List<Element>> requests) {
@@ -111,7 +115,7 @@ public class ImageExtractor {
                     String fileName = uid + extension;
                     String filePath = directory + File.separator + fileName;
 
-                    saveImage(response.getResponseBodyAsStream(), filePath);
+                    saveImage(response.getResponseBodyAsBytes(), filePath);
                     // point to downloaded image
                     for (Element element : request.getValue()){
                         element.attr("src", fileName);
@@ -134,18 +138,17 @@ public class ImageExtractor {
         }
     }
 
-    private void saveImage(InputStream is, String filePath) throws IOException {
-        File f = new File(filePath);
-        FileOutputStream fos = new FileOutputStream(f);
+    private void saveImage(byte[] image, String filePath) throws IOException {
+        // compress
+        byte[] compressed = new ImageCompressor().compress(image);
+        ByteArrayInputStream bis = new ByteArrayInputStream(compressed);
 
-        try {
-            byte[] compressed = new ImageCompressor().compress(is);
-            new ImageResizer().resize(new ByteArrayInputStream(compressed), f);
-        } finally {
-            is.close();
-            fos.close();
-        }
+        // resize
+        BufferedImage input = ImageIO.read(bis);
+        BufferedImage resized = imageResizer.resize(input);
 
+        // save
+        ImageIO.write(resized, "jpg", new File(filePath));
     }
 
     private String extractImageUrl(Element element, Article article) throws ImageExtractionException {

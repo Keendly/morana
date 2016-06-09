@@ -104,4 +104,25 @@ public class ImageExtractorTest {
         assertEquals(ARTICLE_URL + IMAGE_URL, calledURL);
         assertFalse(HTML.equals(article.getContent()));
     }
+
+    @Test
+    public void testExtract_tooManyImages(){
+        int MAX_IMAGES = 1;
+        String FIRST_IMAGE = "http://blabla.jpg";
+        String SECOND_IMAGE = "http://blabla1.jpg";
+        String FIRST_ARTICLE = "<p>text<img src=\"" + FIRST_IMAGE + "\"></p>";
+        String SECOND_ARTICLE = "<p>text<img src=\"" + SECOND_IMAGE + "\"></p>";
+
+        // given
+        ImageExtractor.MAX_IMAGES = MAX_IMAGES;
+        Article firstArticle = Article.builder().content(FIRST_ARTICLE).build();
+        Article secondArticle = Article.builder().content(SECOND_ARTICLE).build();
+
+        // when
+        imageExtractor.extractImages(firstArticle, TMP);
+        imageExtractor.extractImages(secondArticle, TMP);
+
+        // then
+        assertEquals(FIRST_IMAGE, calledURL);
+    }
 }

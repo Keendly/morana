@@ -10,9 +10,9 @@ import javax.imageio.ImageWriter;
 import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 public class ImageCompressor {
 
@@ -26,19 +26,23 @@ public class ImageCompressor {
         imageWriteParam.setCompressionQuality(COMPRESSION_QUALITY);
     }
 
-    public byte[] compress(InputStream is) throws IOException {
+    public byte[] compress(byte[] image) throws IOException {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        ImageWriter imageWriter = new JPEGImageWriter(new JPEGImageWriterSpi());
-        imageWriter.setOutput(ImageIO.createImageOutputStream(os));
-        BufferedImage bufferedImage = ImageIO.read(is);
-        if (bufferedImage.getTransparency() == Transparency.TRANSLUCENT){
-            // create a blank, RGB, same width and height, and a white background
-            BufferedImage newBufferedImage = new BufferedImage(bufferedImage.getWidth(),
-                bufferedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
-            newBufferedImage.createGraphics().drawImage(bufferedImage, 0, 0, Color.WHITE, null);
-            bufferedImage = newBufferedImage;
+        try {
+            ImageWriter imageWriter = new JPEGImageWriter(new JPEGImageWriterSpi());
+            imageWriter.setOutput(ImageIO.createImageOutputStream(os));
+            BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(image));
+            if (bufferedImage.getTransparency() == Transparency.TRANSLUCENT){
+                // create a blank, RGB, same width and height, and a white background
+                BufferedImage newBufferedImage = new BufferedImage(bufferedImage.getWidth(),
+                    bufferedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+                newBufferedImage.createGraphics().drawImage(bufferedImage, 0, 0, Color.WHITE, null);
+                bufferedImage = newBufferedImage;
+            }
+            imageWriter.write(null,  new IIOImage(bufferedImage, null, null), imageWriteParam);
+            return os.toByteArray();
+        } finally {
+            os.close();
         }
-        imageWriter.write(null,  new IIOImage(bufferedImage, null, null), imageWriteParam);
-        return os.toByteArray();
     }
 }

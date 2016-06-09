@@ -89,15 +89,4 @@ public class GeneratorTest {
         return book;
     }
 
-    @Ignore
-    @Test
-    public void test() throws IOException, GeneratorException {
-        Generator.GenerateMessage msg = new Generator.GenerateMessage();
-        msg.bucket = "keendly";
-        msg.key = "deliveries/20160319000247370_bHYba/generate_ebook.req";
-        Book b = Generator.fetchBookMetadata(msg);
-
-        String a = generator.generate(b);
-        System.out.println(a);
-    }
 }
