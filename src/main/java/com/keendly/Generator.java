@@ -54,9 +54,8 @@ public class Generator {
                 for (Article article : section.getArticles()){
                     saveArticle(section, article, bookDirectory);
                 }
-                imageExtractor.close();
             }
-
+            imageExtractor.close();
             return generateMobi(bookDirectory);
         } catch (IOException | InterruptedException e) {
             LOG.error("Couldn't generate ebook", e);

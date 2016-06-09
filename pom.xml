@@ -17,7 +17,7 @@
         <xmlunit.version>2.0.1-SNAPSHOT</xmlunit.version>
         <commons-io.version>2.4</commons-io.version>
         <jsoup.version>1.8.3</jsoup.version>
-        <async-http-client.version>1.9.31</async-http-client.version>
+        <async-http-client.version>1.9.38</async-http-client.version>
         <apache-tika.version>1.9</apache-tika.version>
         <imgscalr.version>4.2</imgscalr.version>
         <aws-sdk.version>1.10.52</aws-sdk.version>
