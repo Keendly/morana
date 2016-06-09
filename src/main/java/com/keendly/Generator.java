@@ -44,8 +44,6 @@ public class Generator {
     private static Processor templateProcessor = new Processor();
     private static CoverCreator coverCreator = new CoverCreator();
 
-    private ImageExtractor imageExtractor = new ImageExtractor();
-
     public Generator(String tempDirectory, String kindleGenPath){
         this.tempDirectory = tempDirectory;
         this.kindleGenPath = kindleGenPath;
@@ -115,7 +113,7 @@ public class Generator {
     }
 
     private void saveArticle(Section section, Article article, String dir) throws IOException {
-        imageExtractor.extractImages(article, bookFilePath(dir,
+        new ImageExtractor().extractImages(article, bookFilePath(dir,
             SECTIONS_DIR + File.separator + section.getHref()));
         String content = templateProcessor.article(article);
         String filePath = sectionFilePath(dir, section, article.getHref() + ".html");
