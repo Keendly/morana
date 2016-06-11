@@ -18,4 +18,4 @@ RUN wget "http://kindlegen.s3.amazonaws.com/kindlegen_linux_2.6_i386_v2_9.tar.gz
 ENV KINDLEGEN_PATH $PROJECT_DIR/kindlegen
 RUN chmod +x $KINDLEGEN_PATH
 
-CMD java -Xmx100m -XX:+PrintGCDateStamps -Xloggc:$PROJECT_DIR/log/gc.log -jar $JAR_PATH $KINDLEGEN_PATH
+CMD java -Xmx100m -XX:+PrintGCDateStamps -Xloggc:$PROJECT_DIR/log/gc.log -XX:MaxDirectMemorySize=50m -jar $JAR_PATH $KINDLEGEN_PATH
