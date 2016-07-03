@@ -1,10 +1,19 @@
 package com.keendly;
 
+import com.amazon.sqs.javamessaging.AmazonSQSExtendedClient;
+import com.amazon.sqs.javamessaging.ExtendedClientConfiguration;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
+import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClient;
+import com.amazonaws.services.simpleworkflow.model.SignalWorkflowExecutionRequest;
+import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
@@ -31,9 +40,20 @@ public class Main {
 
     private static final String QUEUE_URL = "https://sqs.eu-west-1.amazonaws.com/625416862388/generation-queue";
     private static final int QUEUE_POLL_INTERVAL = 30; // seconds
+    private static final String BUCKET = "keendly";
 
-    private static AmazonS3Client amazonS3Client = new AmazonS3Client();
-    private static AmazonSQSClient amazonSQSClient = new AmazonSQSClient();
+    private static AmazonS3 amazonS3Client = new AmazonS3Client();
+    private static AmazonSQS amazonSQSClient = new AmazonSQSClient();
+    private static AmazonSimpleWorkflow amazonSWFClient = new AmazonSimpleWorkflowClient();
+    static {
+        amazonSWFClient.setRegion(Region.getRegion(Regions.EU_WEST_1));
+    }
+
+    static {
+        ExtendedClientConfiguration extendedClientConfiguration = new ExtendedClientConfiguration()
+            .withLargePayloadSupportEnabled(amazonS3Client, BUCKET);
+        amazonSQSClient = new AmazonSQSExtendedClient(amazonSQSClient, extendedClientConfiguration);
+    }
 
     private static String kindleGenPath;
 
@@ -48,17 +68,45 @@ public class Main {
                 if (!messages.isEmpty()){
                     LOG.info("Got {} messages from queue", messages.size());
                     for (Message message : messages){
-                        GenerateMessage generateMessage = deserializeMessage(message);
-                        LOG.debug("Deserialized message: {}", message.getBody());
+                        MDC.put("messageId", message.getMessageId());
                         try {
-                            MDC.put("messageId", message.getMessageId());
-                            LOG.info("Processing started");
-                            processMessage(generateMessage);
-                            LOG.info("Processing finished");
-                        } catch (Exception e){
-                            String ebookDir = extractDir(generateMessage.key);
-                            storeGenerationFailResponse(generateMessage.bucket, ebookDir  + "/generate_ebook.res", e.getMessage());
-                            throw e;
+                            if (!message.getAttributes().containsKey("workflowId")){
+                                // old way
+                                GenerateMessage generateMessage =
+                                    new ObjectMapper().readValue(message.getBody(), GenerateMessage.class);
+                                try {
+                                    LOG.debug("Deserialized message: {}", message.getBody());
+                                    Book book = fetchBookMetadata(generateMessage);
+                                    LOG.debug("Ebook metadata extracted");
+                                    String ebookPath = new Generator("/tmp", kindleGenPath).generate(book);
+                                    LOG.debug("Ebook generated in {}", ebookPath);
+                                    String ebookKey = extractDir(generateMessage.key) + "/keendly.mobi";
+                                    storeEbookToS3(generateMessage.bucket, ebookKey, ebookPath);
+                                    storeGenerationSuccessResponse(generateMessage.bucket, ebookKey, extractDir(generateMessage.key) + "/generate_ebook.res");
+                                    LOG.info("Processing finished");
+                                } catch (Exception e) {
+                                    String ebookDir = extractDir(generateMessage.key);
+                                    storeGenerationFailResponse(generateMessage.bucket, ebookDir + "/generate_ebook.res", e.getMessage());
+                                    throw e;
+                                }
+                            } else {
+                                // SWF workflow
+                                try {
+                                    Book book = new ObjectMapper().readValue(message.getBody(), Book.class);
+                                    String ebookPath = new Generator("/tmp", kindleGenPath).generate(book);
+                                    String key = "ebooks/" + UUID.randomUUID().toString();
+
+                                    storeEbookToS3(BUCKET, key, ebookPath);
+                                    signalWorkflow(message.getAttributes().get("workflowId"),
+                                        message.getAttributes().get("runId"), "generationFinished", key);
+
+                                } catch (Exception e){
+                                    signalWorkflow(message.getAttributes().get("workflowId"),
+                                        message.getAttributes().get("runId"), "generationFinished",
+                                        "ERROR:" + e.getMessage());
+                                    throw e;
+                                }
+                            }
                         } finally {
                             amazonSQSClient.deleteMessage(QUEUE_URL, message.getReceiptHandle());
                         }
@@ -78,20 +126,6 @@ public class Main {
                 LOG.error("Unknown exception", e);
             }
         }
-    }
-
-    private static void processMessage(GenerateMessage generateMessage) throws IOException, GeneratorException {
-        Book book = fetchBookMetadata(generateMessage);
-        LOG.debug("Ebook metadata fetched from S3");
-        String ebookPath = new Generator("/tmp", kindleGenPath).generate(book);
-        LOG.debug("Ebook generated in {}", ebookPath);
-        String ebookKey = extractDir(generateMessage.key) + "/keendly.mobi";
-        storeEbookToS3(generateMessage.bucket, ebookKey, ebookPath);
-        storeGenerationSuccessResponse(generateMessage.bucket, ebookKey, extractDir(generateMessage.key) + "/generate_ebook.res");
-    }
-
-    private static GenerateMessage deserializeMessage(Message msg) throws IOException {
-        return new ObjectMapper().readValue(msg.getBody(), GenerateMessage.class);
     }
 
     // public for test
@@ -166,6 +200,16 @@ public class Main {
         LOG.debug("Response message in S3, key: {}, etag: {}", responseKey, result.getETag());
     }
 
+    private static void signalWorkflow(String workflowId, String runId, String signal, String input){
+        SignalWorkflowExecutionRequest signalRequest = new SignalWorkflowExecutionRequest();
+        signalRequest.setDomain("keendly");
+        signalRequest.setInput(input);
+        signalRequest.setRunId(runId);
+        signalRequest.setWorkflowId(workflowId);
+        signalRequest.setSignalName(signal);
+        amazonSWFClient.signalWorkflowExecution(signalRequest);
+    }
+
     private static String extractDir(String key){
         return key.substring(0, key.lastIndexOf("/"));
     }
@@ -173,5 +217,7 @@ public class Main {
     static class GenerateMessage {
         public String bucket;
         public String key;
+
+
     }
 }

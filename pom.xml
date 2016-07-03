@@ -88,6 +88,17 @@
             <artifactId>aws-java-sdk-sqs</artifactId>
             <version>${aws-sdk.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-simpleworkflow</artifactId>
+            <version>${aws-sdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>amazon-sqs-java-extended-client-lib</artifactId>
+            <version>1.0.0</version>
+            <type>jar</type>
+        </dependency>
         <!-- Thymeleaf -->
         <dependency>
             <groupId>org.thymeleaf</groupId>
