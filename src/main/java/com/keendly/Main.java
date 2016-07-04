@@ -1,7 +1,16 @@
 package com.keendly;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
 import com.amazon.sqs.javamessaging.AmazonSQSExtendedClient;
 import com.amazon.sqs.javamessaging.ExtendedClientConfiguration;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
@@ -26,14 +35,6 @@ import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
 public class Main {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
@@ -42,23 +43,19 @@ public class Main {
     private static final int QUEUE_POLL_INTERVAL = 30; // seconds
     private static final String BUCKET = "keendly";
 
-    private static AmazonS3 amazonS3Client = new AmazonS3Client();
-    private static AmazonSQS amazonSQSClient = new AmazonSQSClient();
-    private static AmazonSimpleWorkflow amazonSWFClient = new AmazonSimpleWorkflowClient();
-    static {
-        amazonSWFClient.setRegion(Region.getRegion(Regions.EU_WEST_1));
-    }
-
-    static {
-        ExtendedClientConfiguration extendedClientConfiguration = new ExtendedClientConfiguration()
-            .withLargePayloadSupportEnabled(amazonS3Client, BUCKET);
-        amazonSQSClient = new AmazonSQSExtendedClient(amazonSQSClient, extendedClientConfiguration);
-    }
+    private static AmazonS3 amazonS3Client;
+    private static AmazonSQS amazonSQSClient;
+    private static AmazonSimpleWorkflow amazonSWFClient;
 
     private static String kindleGenPath;
+    private static String credentialsProfile;
 
     public static void main(String[] args){
         kindleGenPath = args[0];
+        if (args.length > 1){
+            credentialsProfile = args[1];
+        }
+        initClients();
 
         while (true){
             LOG.debug("Polling for messages...");
@@ -70,10 +67,10 @@ public class Main {
                     for (Message message : messages){
                         MDC.put("messageId", message.getMessageId());
                         try {
-                            if (!message.getAttributes().containsKey("workflowId")){
+                            if (!message.getAttributes().containsKey("workflowId")) {
                                 // old way
-                                GenerateMessage generateMessage =
-                                    new ObjectMapper().readValue(message.getBody(), GenerateMessage.class);
+                                GenerateMessage generateMessage = new ObjectMapper()
+                                    .readValue(message.getBody(), GenerateMessage.class);
                                 try {
                                     LOG.debug("Deserialized message: {}", message.getBody());
                                     Book book = fetchBookMetadata(generateMessage);
@@ -82,7 +79,8 @@ public class Main {
                                     LOG.debug("Ebook generated in {}", ebookPath);
                                     String ebookKey = extractDir(generateMessage.key) + "/keendly.mobi";
                                     storeEbookToS3(generateMessage.bucket, ebookKey, ebookPath);
-                                    storeGenerationSuccessResponse(generateMessage.bucket, ebookKey, extractDir(generateMessage.key) + "/generate_ebook.res");
+                                    storeGenerationSuccessResponse(generateMessage.bucket, ebookKey,
+                                        extractDir(generateMessage.key) + "/generate_ebook.res");
                                     LOG.info("Processing finished");
                                 } catch (Exception e) {
                                     String ebookDir = extractDir(generateMessage.key);
@@ -100,13 +98,15 @@ public class Main {
                                     signalWorkflow(message.getAttributes().get("workflowId"),
                                         message.getAttributes().get("runId"), "generationFinished", key);
 
-                                } catch (Exception e){
+                                } catch (Exception e) {
                                     signalWorkflow(message.getAttributes().get("workflowId"),
                                         message.getAttributes().get("runId"), "generationFinished",
                                         "ERROR:" + e.getMessage());
                                     throw e;
                                 }
                             }
+                        } catch (Exception e){
+                            throw e;
                         } finally {
                             amazonSQSClient.deleteMessage(QUEUE_URL, message.getReceiptHandle());
                         }
@@ -127,6 +127,28 @@ public class Main {
             }
         }
     }
+
+    private static void initClients(){
+        AmazonSQS sqsClient = null;
+        if (credentialsProfile != null){
+            LOG.info("Initiating AWS clients with profile: {}", credentialsProfile);
+            ProfileCredentialsProvider credentialsProvider = new ProfileCredentialsProvider(credentialsProfile);
+            amazonS3Client = new AmazonS3Client(credentialsProvider);
+            amazonSWFClient = new AmazonSimpleWorkflowClient(credentialsProvider);
+            sqsClient = new AmazonSQSClient(credentialsProvider);
+        } else {
+            amazonS3Client = new AmazonS3Client();
+            amazonSWFClient = new AmazonSimpleWorkflowClient();
+            sqsClient = new AmazonSQSClient();
+        }
+        ExtendedClientConfiguration extendedClientConfiguration = new ExtendedClientConfiguration()
+            .withLargePayloadSupportEnabled(amazonS3Client, BUCKET);
+        amazonSQSClient = new AmazonSQSExtendedClient(sqsClient, extendedClientConfiguration);
+
+        amazonSWFClient.setRegion(Region.getRegion(Regions.EU_WEST_1));
+
+    }
+
 
     // public for test
     public static Book fetchBookMetadata(GenerateMessage message) throws IOException {
