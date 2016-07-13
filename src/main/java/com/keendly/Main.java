@@ -26,6 +26,7 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import com.amazonaws.util.json.Jackson;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.keendly.model.Article;
 import com.keendly.model.Book;
@@ -59,7 +60,9 @@ public class Main {
 
         while (true){
             LOG.debug("Polling for messages...");
-            ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(QUEUE_URL).withMaxNumberOfMessages(2);
+            ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(QUEUE_URL)
+                .withMessageAttributeNames("All")
+                .withMaxNumberOfMessages(2);
             try {
                 List<Message> messages = amazonSQSClient.receiveMessage(receiveMessageRequest).getMessages();
                 if (!messages.isEmpty()){
@@ -67,7 +70,7 @@ public class Main {
                     for (Message message : messages){
                         MDC.put("messageId", message.getMessageId());
                         try {
-                            if (!message.getAttributes().containsKey("workflowId")) {
+                            if (!message.getMessageAttributes().containsKey("workflowId")) {
                                 // old way
                                 GenerateMessage generateMessage = new ObjectMapper()
                                     .readValue(message.getBody(), GenerateMessage.class);
@@ -92,16 +95,17 @@ public class Main {
                                 try {
                                     Book book = new ObjectMapper().readValue(message.getBody(), Book.class);
                                     String ebookPath = new Generator("/tmp", kindleGenPath).generate(book);
-                                    String key = "ebooks/" + UUID.randomUUID().toString();
+                                    String key = "ebooks/" + UUID.randomUUID().toString() + "/keendly.mobi";
 
                                     storeEbookToS3(BUCKET, key, ebookPath);
-                                    signalWorkflow(message.getAttributes().get("workflowId"),
-                                        message.getAttributes().get("runId"), "generationFinished", key);
+                                    signalWorkflow(message.getMessageAttributes().get("workflowId").getStringValue(),
+                                        message.getMessageAttributes().get("runId").getStringValue(), "generationFinished", key);
 
                                 } catch (Exception e) {
-                                    signalWorkflow(message.getAttributes().get("workflowId"),
-                                        message.getAttributes().get("runId"), "generationFinished",
-                                        "ERROR:" + e.getMessage());
+                                    LOG.error("Error during SWF execution", e);
+                                    signalWorkflow(message.getMessageAttributes().get("workflowId").getStringValue(),
+                                        message.getMessageAttributes().get("runId").getStringValue(), "generationFinished",
+                                        "ERROR: " + e.getMessage());
                                     throw e;
                                 }
                             }
@@ -222,10 +226,18 @@ public class Main {
         LOG.debug("Response message in S3, key: {}, etag: {}", responseKey, result.getETag());
     }
 
-    private static void signalWorkflow(String workflowId, String runId, String signal, String input){
+    private static void signalWorkflow(String workflowId, String runId, String signal, String result){
         SignalWorkflowExecutionRequest signalRequest = new SignalWorkflowExecutionRequest();
+
+        // hacky way to imitate the way Flow Framework sends signals
+        List<Object> objects = new ArrayList<>();
+        List<Object> parameters = new ArrayList<>();
+        objects.add(result);
+        parameters.add("[Ljava.lang.Object;");
+        parameters.add(objects);
+
         signalRequest.setDomain("keendly");
-        signalRequest.setInput(input);
+        signalRequest.setInput(Jackson.toJsonString(parameters));
         signalRequest.setRunId(runId);
         signalRequest.setWorkflowId(workflowId);
         signalRequest.setSignalName(signal);
@@ -239,7 +251,5 @@ public class Main {
     static class GenerateMessage {
         public String bucket;
         public String key;
-
-
     }
 }
