@@ -4,7 +4,6 @@ MAINTAINER MoOmEeN <moomeen@gmail.com>
 ENV PROJECT_DIR /opt/jarilo
 
 RUN mkdir -p $PROJECT_DIR
-RUN mkdir $PROJECT_DIR/log
 
 COPY target/jarilo*.jar $PROJECT_DIR/jarilo.jar
 ENV JAR_PATH $PROJECT_DIR/jarilo.jar

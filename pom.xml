@@ -22,6 +22,7 @@
         <imgscalr.version>4.2</imgscalr.version>
         <aws-sdk.version>1.10.52</aws-sdk.version>
         <protobuf.version>2.6.1</protobuf.version>
+        <log4j-json.version>1.0</log4j-json.version>
     </properties>
     <repositories>
         <repository>
@@ -132,6 +133,11 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.me.mjt</groupId>
+            <artifactId>log4j-json</artifactId>
+            <version>${log4j-json.version}</version>
         </dependency>
         <!-- JSoup -->
         <dependency>
