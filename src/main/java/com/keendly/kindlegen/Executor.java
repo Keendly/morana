@@ -28,6 +28,7 @@ public class Executor {
 
   public String run() throws IOException, TimeoutException, InterruptedException, KindleGenException {
     String command = kindleGenPath + " -c2 -o " + RESULT_FILE_NAME + " " + opfFileName;
+    command = nice(command);
     ProcessBuilder pb = new ProcessBuilder(command.split(" "));
     pb.directory(new File(workingDirectory));
     pb.redirectErrorStream(true);
@@ -57,6 +58,10 @@ public class Executor {
       process.destroy();
     }
 
+  }
+
+  private String nice(String command){
+    return "nice " + command;
   }
 
   private static class Worker extends Thread {

@@ -1,13 +1,5 @@
 package com.keendly;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
 import com.amazon.sqs.javamessaging.AmazonSQSExtendedClient;
 import com.amazon.sqs.javamessaging.ExtendedClientConfiguration;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
@@ -27,6 +19,8 @@ import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.util.json.Jackson;
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.keendly.model.Article;
 import com.keendly.model.Book;
@@ -35,6 +29,14 @@ import com.keendly.schema.GenerateProtos;
 import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 public class Main {
 
@@ -48,15 +50,39 @@ public class Main {
     private static AmazonSQS amazonSQSClient;
     private static AmazonSimpleWorkflow amazonSWFClient;
 
-    private static String kindleGenPath;
-    private static String credentialsProfile;
+    private static String kindlegenPath;
 
     public static void main(String[] args){
-        kindleGenPath = args[0];
-        if (args.length > 1){
-            credentialsProfile = args[1];
+        Arguments arguments = new Arguments();
+        JCommander jc = new JCommander(arguments);
+
+        try {
+            jc.parse(args);
+        } catch (Exception e){
+            jc.usage();
+            System.exit(1);
         }
-        initClients();
+
+        kindlegenPath = arguments.kindlegenPath;
+        initClients(arguments.profile);
+
+        // for testing
+        if (arguments.onlyGenerate != null){
+            GenerateMessage generateMessage = new GenerateMessage();
+            generateMessage.bucket = "keendly";
+            generateMessage.key = arguments.onlyGenerate;
+
+            try {
+                Book book = fetchBookMetadata(generateMessage);
+                LOG.info("Ebook metadata extracted");
+                String ebookPath = new Generator("/tmp", kindlegenPath).generate(book);
+                LOG.info("Ebook generated in {}", ebookPath);
+            } catch (Exception e) {
+                LOG.error("Error generating", e);
+            } finally {
+                return;
+            }
+        }
 
         while (true){
             LOG.debug("Polling for messages...");
@@ -78,7 +104,7 @@ public class Main {
                                     LOG.debug("Deserialized message: {}", message.getBody());
                                     Book book = fetchBookMetadata(generateMessage);
                                     LOG.debug("Ebook metadata extracted");
-                                    String ebookPath = new Generator("/tmp", kindleGenPath).generate(book);
+                                    String ebookPath = new Generator("/tmp", kindlegenPath).generate(book);
                                     LOG.debug("Ebook generated in {}", ebookPath);
                                     String ebookKey = extractDir(generateMessage.key) + "/keendly.mobi";
                                     storeEbookToS3(generateMessage.bucket, ebookKey, ebookPath);
@@ -94,7 +120,7 @@ public class Main {
                                 // SWF workflow
                                 try {
                                     Book book = new ObjectMapper().readValue(message.getBody(), Book.class);
-                                    String ebookPath = new Generator("/tmp", kindleGenPath).generate(book);
+                                    String ebookPath = new Generator("/tmp", kindlegenPath).generate(book);
                                     String key = "ebooks/" + UUID.randomUUID().toString() + "/keendly.mobi";
 
                                     storeEbookToS3(BUCKET, key, ebookPath);
@@ -132,7 +158,7 @@ public class Main {
         }
     }
 
-    private static void initClients(){
+    private static void initClients(String credentialsProfile){
         AmazonSQS sqsClient = null;
         if (credentialsProfile != null){
             LOG.info("Initiating AWS clients with profile: {}", credentialsProfile);
@@ -248,8 +274,21 @@ public class Main {
         return key.substring(0, key.lastIndexOf("/"));
     }
 
-    static class GenerateMessage {
+    private static class GenerateMessage {
         public String bucket;
         public String key;
+    }
+
+    private static class Arguments {
+
+        @Parameter(names = "--profile", description = "AWS Credentials profile")
+        String profile;
+
+        @Parameter(names = "--kindlegen", description = "Kindlegen path", required = true)
+        String kindlegenPath;
+
+        // for testing
+        @Parameter(names = "--onlyGenerate", description = "Only generate ebook from given S3 location")
+        String onlyGenerate;
     }
 }
