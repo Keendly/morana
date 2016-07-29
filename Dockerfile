@@ -18,6 +18,9 @@ ENV KINDLEGEN_PATH $PROJECT_DIR/kindlegen
 RUN chmod +x $KINDLEGEN_PATH
 
 CMD java -Dcom.sun.management.jmxremote.port=9999 \
+         -Dcom.sun.management.jmxremote.rmi.port=9999 \
          -Dcom.sun.management.jmxremote.authenticate=false \
          -Dcom.sun.management.jmxremote.ssl=false \
+         -Djava.rmi.server.hostname='52.51.160.213' \
+         -Dcom.sun.management.jmxremote.local.only=false \
          -Xmx100m -XX:+PrintGCDateStamps -Xloggc:$PROJECT_DIR/log/gc.log -XX:MaxDirectMemorySize=50m -jar $JAR_PATH --kindlegen $KINDLEGEN_PATH
