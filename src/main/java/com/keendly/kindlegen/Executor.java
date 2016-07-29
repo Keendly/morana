@@ -28,7 +28,7 @@ public class Executor {
 
   public String run() throws IOException, TimeoutException, InterruptedException, KindleGenException {
     String command = kindleGenPath + " -c2 -o " + RESULT_FILE_NAME + " " + opfFileName;
-    command = nice(command);
+//    command = nice(command);
     ProcessBuilder pb = new ProcessBuilder(command.split(" "));
     pb.directory(new File(workingDirectory));
     pb.redirectErrorStream(true);
