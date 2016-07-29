@@ -23,4 +23,5 @@ CMD java -Dcom.sun.management.jmxremote.port=9999 \
          -Dcom.sun.management.jmxremote.ssl=false \
          -Djava.rmi.server.hostname='52.51.160.213' \
          -Dcom.sun.management.jmxremote.local.only=false \
+         -XX:+UnlockCommercialFeatures -XX:+FlightRecorder \
          -Xmx100m -XX:+PrintGCDateStamps -Xloggc:$PROJECT_DIR/log/gc.log -XX:MaxDirectMemorySize=50m -jar $JAR_PATH --kindlegen $KINDLEGEN_PATH
