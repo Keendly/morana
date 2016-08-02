@@ -175,7 +175,7 @@ public class Main {
             .withLargePayloadSupportEnabled(amazonS3Client, BUCKET);
         amazonSQSClient = new AmazonSQSExtendedClient(sqsClient, extendedClientConfiguration);
 
-        amazonSWFClient.setRegion(Region.getRegion(Regions.valueOf(swfRegion)));
+        amazonSWFClient.setRegion(Region.getRegion(Regions.fromName(swfRegion.toLowerCase())));
     }
 
 
