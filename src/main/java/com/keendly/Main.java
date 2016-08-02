@@ -1,5 +1,13 @@
 package com.keendly;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
 import com.amazon.sqs.javamessaging.AmazonSQSExtendedClient;
 import com.amazon.sqs.javamessaging.ExtendedClientConfiguration;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
@@ -30,14 +38,6 @@ import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
 public class Main {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
@@ -64,7 +64,7 @@ public class Main {
         }
 
         kindlegenPath = arguments.kindlegenPath;
-        initClients(arguments.profile);
+        initClients(arguments.profile, arguments.swfRegion);
 
         // for testing
         if (arguments.onlyGenerate != null){
@@ -158,7 +158,7 @@ public class Main {
         }
     }
 
-    private static void initClients(String credentialsProfile){
+    private static void initClients(String credentialsProfile, String swfRegion){
         AmazonSQS sqsClient = null;
         if (credentialsProfile != null){
             LOG.info("Initiating AWS clients with profile: {}", credentialsProfile);
@@ -175,8 +175,7 @@ public class Main {
             .withLargePayloadSupportEnabled(amazonS3Client, BUCKET);
         amazonSQSClient = new AmazonSQSExtendedClient(sqsClient, extendedClientConfiguration);
 
-        amazonSWFClient.setRegion(Region.getRegion(Regions.EU_WEST_1));
-
+        amazonSWFClient.setRegion(Region.getRegion(Regions.valueOf(swfRegion)));
     }
 
 
@@ -290,5 +289,8 @@ public class Main {
         // for testing
         @Parameter(names = "--onlyGenerate", description = "Only generate ebook from given S3 location")
         String onlyGenerate;
+
+        @Parameter(names = "--swfRegion", description = "Region used to signal SWF workflows")
+        String swfRegion = Region.getRegion(Regions.EU_WEST_1).getName();
     }
 }
