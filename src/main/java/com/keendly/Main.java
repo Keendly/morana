@@ -220,7 +220,7 @@ public class Main {
 
     private static void storeEbookToS3(String bucket, String key, String filePath){
         PutObjectResult result = amazonS3Client.putObject(new PutObjectRequest(bucket, key, new File(filePath)));
-        LOG.debug("Ebook stored in S3, key: {}, etag: {}", key, result.getETag());
+        LOG.debug("Ebook stored in S3, key: {}, etag: {} ", key, result.getETag());
     }
 
     private static void storeGenerationSuccessResponse(String bucket, String ebookKey, String responseKey) throws IOException {
