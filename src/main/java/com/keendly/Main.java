@@ -1,13 +1,5 @@
 package com.keendly;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
 import com.amazon.sqs.javamessaging.AmazonSQSExtendedClient;
 import com.amazon.sqs.javamessaging.ExtendedClientConfiguration;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
@@ -37,6 +29,14 @@ import com.keendly.schema.GenerateProtos;
 import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 public class Main {
 
@@ -220,7 +220,7 @@ public class Main {
 
     private static void storeEbookToS3(String bucket, String key, String filePath){
         PutObjectResult result = amazonS3Client.putObject(new PutObjectRequest(bucket, key, new File(filePath)));
-        LOG.debug("Ebook stored in S3, key: {}, etag: {} ", key, result.getETag());
+        LOG.debug("Ebook stored in S3, key: {}, etag: {}", key, result.getETag());
     }
 
     private static void storeGenerationSuccessResponse(String bucket, String ebookKey, String responseKey) throws IOException {
