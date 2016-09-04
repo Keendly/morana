@@ -40,6 +40,7 @@ public class ImageCompressor {
                 bufferedImage = newBufferedImage;
             }
             imageWriter.write(null,  new IIOImage(bufferedImage, null, null), imageWriteParam);
+            imageWriter.dispose();
             return os.toByteArray();
         } finally {
             os.close();
