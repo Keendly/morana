@@ -54,9 +54,16 @@ public class ImageExtractor {
         Document document = Jsoup.parse(article.getContent());
         Elements elements = document.select("img");
 
+        // remove 'alt' attributes because they sometimes cause kindlegen fail, for example:
+        // alt="At a glance, <i>Pokemon Uranium</i> is pretty hard to distinguish from an official Nintendo release."
+        for (Element element : elements){
+            element.removeAttr("alt");
+        }
+
         if (imagesCount.get() >= MAX_IMAGES){
             LOG.warn("Reached max number of images: {}, skipping", MAX_IMAGES);
             elements.remove();
+            article.setContent(document.body().html());
             return;
         }
 
