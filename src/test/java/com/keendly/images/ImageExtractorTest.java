@@ -1,10 +1,13 @@
 package com.keendly.images;
 
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
-import com.keendly.model.Article;
 import com.ning.http.client.AsyncHttpClient;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class ImageExtractorTest {
@@ -16,11 +19,11 @@ public class ImageExtractorTest {
     private String calledURL;
 
     @Before
-    public void setUp(){
-        httpClient = new AsyncHttpClient(){
+    public void setUp() {
+        httpClient = new AsyncHttpClient() {
 
             @Override
-            public BoundRequestBuilder prepareGet(String url){
+            public BoundRequestBuilder prepareGet(String url) {
                 calledURL = url;
                 return super.prepareGet(url);
             }
@@ -29,84 +32,86 @@ public class ImageExtractorTest {
     }
 
     @Test
-    public void testExtract_correctHTML_noImages(){
+    public void testExtract_correctHTML_noImages() {
         String HTML = "<p>text</p>";
 
         // given
-        Article article = Article.builder().content(HTML).build();
+        Document article = Jsoup.parse(HTML);
 
         // when
-        imageExtractor.extractImages(article, TMP);
+        imageExtractor.extractImages(article, null, TMP);
 
         // then
-        assertEquals(HTML, article.getContent());
+        assertEquals(HTML, article.body().html());
         assertNull(calledURL);
     }
 
     @Test
-    public void testExtract_correctHTML_wrongSrcAttribute(){
+    public void testExtract_correctHTML_wrongSrcAttribute() {
         String HTML = "<p>text<img src=\"blab\\la\"></p>";
 
         // given
-        Article article = Article.builder().content(HTML).build();
+        Document article = Jsoup.parse(HTML);
 
         // when
-        imageExtractor.extractImages(article, TMP);
+        imageExtractor.extractImages(article, null, TMP);
 
         // then
-        assertEquals(HTML, article.getContent());
         assertNull(calledURL);
+        assertEquals("<p>text</p>", article.body().html());
     }
 
     @Test
-    public void testExtract_notHTML(){
+    public void testExtract_notHTML() {
         String HTML = "blabla";
 
         // given
-        Article article = Article.builder().content(HTML).build();
+        Document article = Jsoup.parse(HTML);
 
         // when
-        imageExtractor.extractImages(article, TMP);
+        imageExtractor.extractImages(article, null, TMP);
 
         // then
-        assertEquals(HTML, article.getContent());
+        assertEquals(HTML, article.body().html());
         assertNull(calledURL);
     }
 
     @Test
-    public void testExtract_absoluteURL(){
+    public void testExtract_absoluteURL() {
         String URL = "http://media02.hongkiat.com/translate-wordpress-themes/translate-wordpress-core.jpg";
         String HTML = "<p>Allowing clients to manage their websites in their native languages is an important aspect of <a href=\"http://www.hongkiat.com/blog/accessibility-design-needs/\" target=\"_blank\">accessibility</a>. If you develop a WordPress site that may have <strong>users from non-English speaking countries</strong>, it can be necessary to translate the theme.</p><p>Localizing the theme doesn’t mean you translate the content on the frontend such as posts and pages; instead, it refers to the <strong>theme-related content</strong> in the admin area: the theme’s description, options, and the customizer.</p><img src=\"http://media02.hongkiat.com/translate-wordpress-themes/translate-wordpress-core.jpg\">";
+
         // given
-        Article article = Article.builder().content(HTML).build();
+        Document article = Jsoup.parse(HTML);
 
         // when
-        imageExtractor.extractImages(article, TMP);
+        imageExtractor.extractImages(article, null, TMP);
 
         // then
         assertEquals(URL, calledURL);
-        assertFalse(HTML.equals(article.getContent()));
+        assertThat(article.select("p").size(), is(2));
+        assertNotEquals(article.select("img").attr("src"), URL);
     }
 
     @Test
-    public void testExtract_relativeURL(){
+    public void testExtract_relativeURL() {
         String IMAGE_URL = "translate-wordpress-core.jpg";
         String HTML = "<p>text<img src=\"" + IMAGE_URL + "\"></p>";
         String ARTICLE_URL = "http://media02.hongkiat.com/translate-wordpress-themes/";
 
         // given
-        Article article = Article.builder().content(HTML).url(ARTICLE_URL).build();
+        Document article = Jsoup.parse(HTML);
 
         // when
-        imageExtractor.extractImages(article, TMP);
+        imageExtractor.extractImages(article, ARTICLE_URL, TMP);
 
         // then
         assertEquals(ARTICLE_URL + IMAGE_URL, calledURL);
-        assertFalse(HTML.equals(article.getContent()));
+        assertThat(article.select("p").size(), is(1));
     }
 
     @Test
-    public void testExtract_tooManyImages(){
+    public void testExtract_tooManyImages() {
         int MAX_IMAGES = 1;
         String FIRST_IMAGE = "http://blabla.jpg";
         String SECOND_IMAGE = "http://blabla1.jpg";
@@ -115,14 +120,26 @@ public class ImageExtractorTest {
 
         // given
         ImageExtractor.MAX_IMAGES = MAX_IMAGES;
-        Article firstArticle = Article.builder().content(FIRST_ARTICLE).build();
-        Article secondArticle = Article.builder().content(SECOND_ARTICLE).build();
+        Document firstArticle = Jsoup.parse(FIRST_ARTICLE);
+        Document secondArticle = Jsoup.parse(SECOND_ARTICLE);
 
         // when
-        imageExtractor.extractImages(firstArticle, TMP);
-        imageExtractor.extractImages(secondArticle, TMP);
+        imageExtractor.extractImages(firstArticle, null, TMP);
+        imageExtractor.extractImages(secondArticle, null, TMP);
 
         // then
         assertEquals(FIRST_IMAGE, calledURL);
+    }
+
+    @Test
+    @Ignore
+    public void testExtract_imageNotFound(){
+        // TODO, check that we remove element on 404
+    }
+
+    @Test
+    @Ignore
+    public void testExtract_svgImage(){
+        // TODO, check that no compression is done on svg
     }
 }

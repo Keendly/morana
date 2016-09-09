@@ -1,10 +1,10 @@
 package com.keendly.images;
 
-import com.keendly.model.Article;
 import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.Response;
-import org.jsoup.Jsoup;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpStatus;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -16,6 +16,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -50,20 +51,12 @@ public class ImageExtractor {
 
     private AtomicInteger imagesCount = new AtomicInteger(0);
 
-    public void extractImages(Article article, String directory) {
-        Document document = Jsoup.parse(article.getContent());
+    public void extractImages(Document document, String articleUrl, String directory) {
         Elements elements = document.select("img");
-
-        // remove 'alt' attributes because they sometimes cause kindlegen fail, for example:
-        // alt="At a glance, <i>Pokemon Uranium</i> is pretty hard to distinguish from an official Nintendo release."
-        for (Element element : elements){
-            element.removeAttr("alt");
-        }
 
         if (imagesCount.get() >= MAX_IMAGES){
             LOG.warn("Reached max number of images: {}, skipping", MAX_IMAGES);
             elements.remove();
-            article.setContent(document.body().html());
             return;
         }
 
@@ -71,7 +64,7 @@ public class ImageExtractor {
         Map<AsyncHttpClient.BoundRequestBuilder, List<Element>> requests = new HashMap<>();
         for (Element element : elements){
             try {
-                String url = extractImageUrl(element, article);
+                String url = extractImageUrl(element, articleUrl);
                 if (urls.containsKey(url)){
                     LOG.debug("Request already exists for url: {}", url);
                     requests.get(url).add(element);
@@ -96,7 +89,6 @@ public class ImageExtractor {
             return;
         }
         runRequests(directory, requests);
-        article.setContent(document.body().html());
         return;
     }
 
@@ -112,6 +104,14 @@ public class ImageExtractor {
 
                 @Override
                 public Response onCompleted(Response response) throws Exception {
+                    if (response.getStatusCode() != HttpStatus.SC_OK){
+                        for (Element element : request.getValue()){
+                            element.remove();
+                        }
+                        counter.countDown();
+                        return response;
+                    }
+
                     String uid = generateUUID();
                     String extension = ExtensionUtils.extractFileExtension(request.getKey().build(), response);
                     if (StringUtils.isEmpty(extension)){
@@ -121,8 +121,11 @@ public class ImageExtractor {
                     }
                     String fileName = uid + extension;
                     String filePath = directory + File.separator + fileName;
-
-                    saveImage(response.getResponseBodyAsBytes(), filePath);
+                    if (".svg".equalsIgnoreCase(extension)){
+                        saveAsIs(response.getResponseBodyAsBytes(), filePath);
+                    } else {
+                        compressAndSave(response.getResponseBodyAsBytes(), filePath);
+                    }
                     // point to downloaded image
                     for (Element element : request.getValue()){
                         element.attr("src", fileName);
@@ -145,7 +148,7 @@ public class ImageExtractor {
         }
     }
 
-    private void saveImage(byte[] image, String filePath) throws IOException {
+    private void compressAndSave(byte[] image, String filePath) throws IOException {
         // compress
         byte[] compressed = new ImageCompressor().compress(image);
         ByteArrayInputStream bis = new ByteArrayInputStream(compressed);
@@ -158,14 +161,18 @@ public class ImageExtractor {
         ImageIO.write(resized, "jpg", new File(filePath));
     }
 
-    private String extractImageUrl(Element element, Article article) throws ImageExtractionException {
+    private void saveAsIs(byte[] image, String filePath) throws IOException {
+        IOUtils.write(image, new FileOutputStream(filePath));
+    }
+
+    private String extractImageUrl(Element element, String articleUrl) throws ImageExtractionException {
         String src = getSource(element);
         try {
             String url;
             if (isAbsolute(src)){
                 url = src;
             } else {
-                url = buildAbsolutePath(src, article.getUrl());
+                url = buildAbsolutePath(src, articleUrl);
             }
             return url;
         } catch (URISyntaxException e){

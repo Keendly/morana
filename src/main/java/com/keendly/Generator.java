@@ -3,6 +3,7 @@ package com.keendly;
 import com.keendly.cover.CoverCreator;
 import com.keendly.images.ImageExtractor;
 import com.keendly.kindlegen.Executor;
+import com.keendly.kindlegen.Preprocessor;
 import com.keendly.kindlegen.exception.KindleGenException;
 import com.keendly.kindlegen.exception.TimeoutException;
 import com.keendly.model.Article;
@@ -11,6 +12,8 @@ import com.keendly.model.Section;
 import com.keendly.template.Processor;
 import com.keendly.utils.BookUtils;
 import org.apache.commons.io.FileUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,8 +106,15 @@ public class Generator {
     }
 
     private void saveArticle(Section section, Article article, String dir) throws IOException {
-        imageExtractor.extractImages(article, bookFilePath(dir,
-            SECTIONS_DIR + File.separator + section.getHref()));
+        Document document = Jsoup.parse(article.getContent());
+        Preprocessor preprocessor = new Preprocessor(document);
+        preprocessor.preprocess();
+
+        imageExtractor.extractImages(document, article.getUrl(),
+            bookFilePath(dir, SECTIONS_DIR + File.separator + section.getHref()));
+
+        article.setContent(document.body().html());
+
         String content = templateProcessor.article(article);
         String filePath = sectionFilePath(dir, section, article.getHref() + ".html");
         saveToFile(filePath, content);

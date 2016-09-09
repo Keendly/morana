@@ -125,8 +125,8 @@ public class Main {
 
                                     storeEbookToS3(BUCKET, key, ebookPath);
                                     signalWorkflow(message.getMessageAttributes().get("workflowId").getStringValue(),
-                                        message.getMessageAttributes().get("runId").getStringValue(), "generationFinished", key);
-
+                                        message.getMessageAttributes().get("runId").getStringValue(),
+                                        "generationFinished", key);
                                 } catch (Exception e) {
                                     LOG.error("Error during SWF execution", e);
                                     signalWorkflow(message.getMessageAttributes().get("workflowId").getStringValue(),

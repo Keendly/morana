@@ -15,4 +15,16 @@ public class KindleGenException extends Exception {
     this.output = kindleGenOutput;
   }
 
+  @Override
+  public String getMessage(){
+    StringBuilder sb = new StringBuilder();
+    String[] lines = this.output.split("\n");
+    for (String line : lines){
+      if (line.startsWith("Error")){
+        sb.append(line);
+        sb.append("\n");
+      }
+    }
+    return sb.toString().trim();
+  }
 }
