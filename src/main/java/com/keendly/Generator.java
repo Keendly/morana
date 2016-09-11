@@ -106,14 +106,18 @@ public class Generator {
     }
 
     private void saveArticle(Section section, Article article, String dir) throws IOException {
-        Document document = Jsoup.parse(article.getContent());
-        Preprocessor preprocessor = new Preprocessor(document);
-        preprocessor.preprocess();
+        try {
+            Document document = Jsoup.parse(article.getContent());
+            Preprocessor preprocessor = new Preprocessor(document);
+            preprocessor.preprocess();
 
-        imageExtractor.extractImages(document, article.getUrl(),
-            bookFilePath(dir, SECTIONS_DIR + File.separator + section.getHref()));
+            imageExtractor.extractImages(document, article.getUrl(),
+                bookFilePath(dir, SECTIONS_DIR + File.separator + section.getHref()));
 
-        article.setContent(document.body().html());
+            article.setContent(document.body().html());
+        } catch (Exception e){
+            LOG.error("Error processing article", e);
+        }
 
         String content = templateProcessor.article(article);
         String filePath = sectionFilePath(dir, section, article.getHref() + ".html");
