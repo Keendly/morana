@@ -3,17 +3,16 @@ package com.keendly;
 import com.amazon.sqs.javamessaging.AmazonSQSExtendedClient;
 import com.amazon.sqs.javamessaging.ExtendedClientConfiguration;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflow;
-import com.amazonaws.services.simpleworkflow.AmazonSimpleWorkflowClient;
-import com.amazonaws.services.simpleworkflow.model.SignalWorkflowExecutionRequest;
+import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.sns.model.MessageAttributeValue;
+import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.Message;
@@ -24,6 +23,7 @@ import com.beust.jcommander.Parameter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.keendly.model.Article;
 import com.keendly.model.Book;
+import com.keendly.model.GenerateFinished;
 import com.keendly.model.Section;
 import com.keendly.schema.GenerateProtos;
 import org.apache.log4j.MDC;
@@ -35,20 +35,21 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class Main {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
-    private static final String QUEUE_URL = "https://sqs.eu-west-1.amazonaws.com/625416862388/generation-queue";
     private static final int QUEUE_POLL_INTERVAL = 30; // seconds
     private static final String BUCKET = "keendly";
 
     private static AmazonS3 amazonS3Client;
     private static AmazonSQS amazonSQSClient;
-    private static AmazonSimpleWorkflow amazonSWFClient;
+    private static AmazonSNS amazonSNSClient;
 
     private static String kindlegenPath;
 
@@ -64,29 +65,11 @@ public class Main {
         }
 
         kindlegenPath = arguments.kindlegenPath;
-        initClients(arguments.profile, arguments.swfRegion);
-
-        // for testing
-        if (arguments.onlyGenerate != null){
-            GenerateMessage generateMessage = new GenerateMessage();
-            generateMessage.bucket = "keendly";
-            generateMessage.key = arguments.onlyGenerate;
-
-            try {
-                Book book = fetchBookMetadata(generateMessage);
-                LOG.info("Ebook metadata extracted");
-                String ebookPath = new Generator("/tmp", kindlegenPath).generate(book);
-                LOG.info("Ebook generated in {}", ebookPath);
-            } catch (Exception e) {
-                LOG.error("Error generating", e);
-            } finally {
-                return;
-            }
-        }
+        initClients(arguments.profile);
 
         while (true){
             LOG.debug("Polling for messages...");
-            ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(QUEUE_URL)
+            ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(arguments.queue.trim())
                 .withMessageAttributeNames("All")
                 .withMaxNumberOfMessages(2);
             try {
@@ -124,21 +107,25 @@ public class Main {
                                     String key = "ebooks/" + UUID.randomUUID().toString() + "/keendly.mobi";
 
                                     storeEbookToS3(BUCKET, key, ebookPath);
-                                    signalWorkflow(message.getMessageAttributes().get("workflowId").getStringValue(),
-                                        message.getMessageAttributes().get("runId").getStringValue(),
-                                        "generationFinished", key);
+                                    publishSuccess(key, arguments.topic, message);
+//
+//                                    signalWorkflow(message.getMessageAttributes().get("workflowId").getStringValue(),
+//                                        message.getMessageAttributes().get("runId").getStringValue(),
+//                                        "generationFinished", key);
                                 } catch (Exception e) {
                                     LOG.error("Error during SWF execution", e);
-                                    signalWorkflow(message.getMessageAttributes().get("workflowId").getStringValue(),
-                                        message.getMessageAttributes().get("runId").getStringValue(), "generationFinished",
-                                        "ERROR: " + e.getMessage());
+                                    publishError(e, arguments.topic, message);
+
+//                                    signalWorkflow(message.getMessageAttributes().get("workflowId").getStringValue(),
+//                                        message.getMessageAttributes().get("runId").getStringValue(), "generationFinished",
+//                                        "ERROR: " + e.getMessage());
                                     throw e;
                                 }
                             }
                         } catch (Exception e){
                             throw e;
                         } finally {
-                            amazonSQSClient.deleteMessage(QUEUE_URL, message.getReceiptHandle());
+                            amazonSQSClient.deleteMessage(arguments.queue, message.getReceiptHandle());
                         }
                     }
                     MDC.clear();
@@ -158,24 +145,22 @@ public class Main {
         }
     }
 
-    private static void initClients(String credentialsProfile, String swfRegion){
+    private static void initClients(String credentialsProfile){
         AmazonSQS sqsClient = null;
         if (credentialsProfile != null){
             LOG.info("Initiating AWS clients with profile: {}", credentialsProfile);
             ProfileCredentialsProvider credentialsProvider = new ProfileCredentialsProvider(credentialsProfile);
             amazonS3Client = new AmazonS3Client(credentialsProvider);
-            amazonSWFClient = new AmazonSimpleWorkflowClient(credentialsProvider);
+            amazonSNSClient = new AmazonSNSClient(credentialsProvider);
             sqsClient = new AmazonSQSClient(credentialsProvider);
         } else {
             amazonS3Client = new AmazonS3Client();
-            amazonSWFClient = new AmazonSimpleWorkflowClient();
+            amazonSNSClient = new AmazonSNSClient();
             sqsClient = new AmazonSQSClient();
         }
         ExtendedClientConfiguration extendedClientConfiguration = new ExtendedClientConfiguration()
             .withLargePayloadSupportEnabled(amazonS3Client, BUCKET);
         amazonSQSClient = new AmazonSQSExtendedClient(sqsClient, extendedClientConfiguration);
-
-        amazonSWFClient.setRegion(Region.getRegion(Regions.fromName(swfRegion.toLowerCase())));
     }
 
 
@@ -251,22 +236,58 @@ public class Main {
         LOG.debug("Response message in S3, key: {}, etag: {}", responseKey, result.getETag());
     }
 
-    private static void signalWorkflow(String workflowId, String runId, String signal, String result){
-        SignalWorkflowExecutionRequest signalRequest = new SignalWorkflowExecutionRequest();
+//    private static void signalWorkflow(String workflowId, String runId, String signal, String result){
+//        SignalWorkflowExecutionRequest signalRequest = new SignalWorkflowExecutionRequest();
+//
+//        // hacky way to imitate the way Flow Framework sends signals
+//        List<Object> objects = new ArrayList<>();
+//        List<Object> parameters = new ArrayList<>();
+//        objects.add(result);
+//        parameters.add("[Ljava.lang.Object;");
+//        parameters.add(objects);
+//
+//        signalRequest.setDomain("keendly");
+//        signalRequest.setInput(Jackson.toJsonString(parameters));
+//        signalRequest.setRunId(runId);
+//        signalRequest.setWorkflowId(workflowId);
+//        signalRequest.setSignalName(signal);
+//        amazonSWFClient.signalWorkflowExecution(signalRequest);
+//    }
 
-        // hacky way to imitate the way Flow Framework sends signals
-        List<Object> objects = new ArrayList<>();
-        List<Object> parameters = new ArrayList<>();
-        objects.add(result);
-        parameters.add("[Ljava.lang.Object;");
-        parameters.add(objects);
+    private static void publishSuccess(String key, String topic, Message message){
+        GenerateFinished msg = new GenerateFinished();
+        msg.key = key;
+        msg.success = true;
 
-        signalRequest.setDomain("keendly");
-        signalRequest.setInput(Jackson.toJsonString(parameters));
-        signalRequest.setRunId(runId);
-        signalRequest.setWorkflowId(workflowId);
-        signalRequest.setSignalName(signal);
-        amazonSWFClient.signalWorkflowExecution(signalRequest);
+        PublishRequest publishRequest = new PublishRequest();
+        publishRequest.setMessageAttributes(copyAttributes(message.getMessageAttributes()));
+        publishRequest.setMessage(Jackson.toJsonString(msg));
+        publishRequest.setTopicArn(topic.trim());
+        amazonSNSClient.publish(publishRequest);
+    }
+
+    private static void publishError(Exception e, String topic, Message message){
+        GenerateFinished msg = new GenerateFinished();
+        msg.success = false;
+        msg.error = e.getMessage();
+
+        PublishRequest publishRequest = new PublishRequest();
+        publishRequest.setMessageAttributes(copyAttributes(message.getMessageAttributes()));
+        publishRequest.setMessage(Jackson.toJsonString(msg));
+        publishRequest.setTopicArn(topic.trim());
+        amazonSNSClient.publish(publishRequest);
+    }
+
+    private static Map<String, MessageAttributeValue> copyAttributes(Map<String, com.amazonaws.services.sqs.model.MessageAttributeValue> input){
+        Map<String, MessageAttributeValue> res = new HashMap<>();
+        for (Map.Entry<String, com.amazonaws.services.sqs.model.MessageAttributeValue> entry : input.entrySet()){
+            MessageAttributeValue r = new MessageAttributeValue();
+            r.setBinaryValue(entry.getValue().getBinaryValue());
+            r.setStringValue(entry.getValue().getStringValue());
+            r.setDataType(entry.getValue().getDataType());
+            res.put(entry.getKey(), r);
+        }
+        return res;
     }
 
     private static String extractDir(String key){
@@ -286,11 +307,10 @@ public class Main {
         @Parameter(names = "--kindlegen", description = "Kindlegen path", required = true)
         String kindlegenPath;
 
-        // for testing
-        @Parameter(names = "--onlyGenerate", description = "Only generate ebook from given S3 location")
-        String onlyGenerate;
+        @Parameter(names = "--inboundQueue", description = "SQS queue to poll for messages", required = true)
+        String queue;
 
-        @Parameter(names = "--swfRegion", description = "Region used to signal SWF workflows")
-        String swfRegion = Region.getRegion(Regions.EU_WEST_1).getName();
+        @Parameter(names = "--outboundTopic", description = "SNS topic to publish result to", required = true)
+        String topic;
     }
 }
