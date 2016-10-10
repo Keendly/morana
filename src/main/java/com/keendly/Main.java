@@ -263,6 +263,7 @@ public class Main {
         publishRequest.setMessageAttributes(copyAttributes(message.getMessageAttributes()));
         publishRequest.setMessage(Jackson.toJsonString(msg));
         publishRequest.setTopicArn(topic.trim());
+        LOG.info("Publishing to {}, message {}", topic.trim(), Jackson.toJsonString(msg));
         amazonSNSClient.publish(publishRequest);
     }
 
