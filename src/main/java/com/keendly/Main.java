@@ -3,6 +3,8 @@ package com.keendly;
 import com.amazon.sqs.javamessaging.AmazonSQSExtendedClient;
 import com.amazon.sqs.javamessaging.ExtendedClientConfiguration;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -158,6 +160,7 @@ public class Main {
             amazonSNSClient = new AmazonSNSClient();
             sqsClient = new AmazonSQSClient();
         }
+        amazonSNSClient.setRegion(Region.getRegion(Regions.EU_WEST_1));
         ExtendedClientConfiguration extendedClientConfiguration = new ExtendedClientConfiguration()
             .withLargePayloadSupportEnabled(amazonS3Client, BUCKET);
         amazonSQSClient = new AmazonSQSExtendedClient(sqsClient, extendedClientConfiguration);
