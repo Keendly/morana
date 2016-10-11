@@ -69,6 +69,22 @@ public class Main {
         kindlegenPath = arguments.kindlegenPath;
         initClients(arguments.profile);
 
+        if (arguments.onlyGenerate != null){
+            try {
+                S3Object s3Object = amazonS3Client.getObject(BUCKET, arguments.onlyGenerate);
+                Book book = new ObjectMapper().readValue(s3Object.getObjectContent(), Book.class);
+                String ebookPath = new Generator("/tmp", kindlegenPath).generate(book);
+
+                LOG.info("Generated: {}", ebookPath);
+            } catch (IOException e){
+                e.printStackTrace();
+            } catch (GeneratorException e) {
+                e.printStackTrace();
+            }
+
+            return;
+        }
+
         while (true){
             LOG.debug("Polling for messages...");
             ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(arguments.queue.trim())
@@ -81,48 +97,16 @@ public class Main {
                     for (Message message : messages){
                         MDC.put("messageId", message.getMessageId());
                         try {
-                            if (!message.getMessageAttributes().containsKey("workflowId")) {
-                                // old way
-                                GenerateMessage generateMessage = new ObjectMapper()
-                                    .readValue(message.getBody(), GenerateMessage.class);
-                                try {
-                                    LOG.debug("Deserialized message: {}", message.getBody());
-                                    Book book = fetchBookMetadata(generateMessage);
-                                    LOG.debug("Ebook metadata extracted");
-                                    String ebookPath = new Generator("/tmp", kindlegenPath).generate(book);
-                                    LOG.debug("Ebook generated in {}", ebookPath);
-                                    String ebookKey = extractDir(generateMessage.key) + "/keendly.mobi";
-                                    storeEbookToS3(generateMessage.bucket, ebookKey, ebookPath);
-                                    storeGenerationSuccessResponse(generateMessage.bucket, ebookKey,
-                                        extractDir(generateMessage.key) + "/generate_ebook.res");
-                                    LOG.info("Processing finished");
-                                } catch (Exception e) {
-                                    String ebookDir = extractDir(generateMessage.key);
-                                    storeGenerationFailResponse(generateMessage.bucket, ebookDir + "/generate_ebook.res", e.getMessage());
-                                    throw e;
-                                }
-                            } else {
-                                // SWF workflow
-                                try {
-                                    Book book = new ObjectMapper().readValue(message.getBody(), Book.class);
-                                    String ebookPath = new Generator("/tmp", kindlegenPath).generate(book);
-                                    String key = "ebooks/" + UUID.randomUUID().toString() + "/keendly.mobi";
-
-                                    storeEbookToS3(BUCKET, key, ebookPath);
-                                    publishSuccess(key, arguments.topic, message);
-//
-//                                    signalWorkflow(message.getMessageAttributes().get("workflowId").getStringValue(),
-//                                        message.getMessageAttributes().get("runId").getStringValue(),
-//                                        "generationFinished", key);
-                                } catch (Exception e) {
-                                    LOG.error("Error during SWF execution", e);
-                                    publishError(e, arguments.topic, message);
-
-//                                    signalWorkflow(message.getMessageAttributes().get("workflowId").getStringValue(),
-//                                        message.getMessageAttributes().get("runId").getStringValue(), "generationFinished",
-//                                        "ERROR: " + e.getMessage());
-                                    throw e;
-                                }
+                            try {
+                                Book book = new ObjectMapper().readValue(message.getBody(), Book.class);
+                                String ebookPath = new Generator("/tmp", kindlegenPath).generate(book);
+                                String key = "ebooks/" + UUID.randomUUID().toString() + "/keendly.mobi";
+                                storeEbookToS3(BUCKET, key, ebookPath);
+                                publishSuccess(key, arguments.topic, message);
+                            } catch (Exception e) {
+                                LOG.error("Error during SWF execution", e);
+                                publishError(e, arguments.topic, message);
+                                throw e;
                             }
                         } catch (Exception e){
                             throw e;
@@ -239,24 +223,6 @@ public class Main {
         LOG.debug("Response message in S3, key: {}, etag: {}", responseKey, result.getETag());
     }
 
-//    private static void signalWorkflow(String workflowId, String runId, String signal, String result){
-//        SignalWorkflowExecutionRequest signalRequest = new SignalWorkflowExecutionRequest();
-//
-//        // hacky way to imitate the way Flow Framework sends signals
-//        List<Object> objects = new ArrayList<>();
-//        List<Object> parameters = new ArrayList<>();
-//        objects.add(result);
-//        parameters.add("[Ljava.lang.Object;");
-//        parameters.add(objects);
-//
-//        signalRequest.setDomain("keendly");
-//        signalRequest.setInput(Jackson.toJsonString(parameters));
-//        signalRequest.setRunId(runId);
-//        signalRequest.setWorkflowId(workflowId);
-//        signalRequest.setSignalName(signal);
-//        amazonSWFClient.signalWorkflowExecution(signalRequest);
-//    }
-
     private static void publishSuccess(String key, String topic, Message message){
         GenerateFinished msg = new GenerateFinished();
         msg.key = key;
@@ -311,10 +277,13 @@ public class Main {
         @Parameter(names = "--kindlegen", description = "Kindlegen path", required = true)
         String kindlegenPath;
 
-        @Parameter(names = "--inboundQueue", description = "SQS queue to poll for messages", required = true)
+        @Parameter(names = "--inboundQueue", description = "SQS queue to poll for messages")
         String queue;
 
-        @Parameter(names = "--outboundTopic", description = "SNS topic to publish result to", required = true)
+        @Parameter(names = "--outboundTopic", description = "SNS topic to publish result to")
         String topic;
+
+        @Parameter(names = "--onlyGenerate", description = "Only generate ebook, for debugging")
+        String onlyGenerate;
     }
 }
