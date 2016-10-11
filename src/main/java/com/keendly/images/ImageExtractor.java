@@ -137,6 +137,9 @@ public class ImageExtractor {
                 @Override
                 public void onThrowable(Throwable t) {
                     LOG.error("Couldn't download image " + request.getKey().build().getUrl(), t);
+                    for (Element element : request.getValue()){
+                        element.remove();
+                    }
                     counter.countDown();
                 }
             });
