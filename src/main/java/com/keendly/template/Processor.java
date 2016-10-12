@@ -31,7 +31,7 @@ public class Processor {
     }
 
     public String details(Book book){
-        return xmlEngine.process("jindle.opf", bookToContext(book));
+        return xmlEngine.process("keendly.opf", bookToContext(book));
     }
 
     public String contentsHTML(Book book){

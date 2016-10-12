@@ -6,8 +6,8 @@
         <dc-metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
             <dc:title th:text="${title}">Jindle</dc:title>
             <dc:language th:text="${language}">en-gb</dc:language>
-            <dc:creator th:text="${creator}">jindle</dc:creator>
-            <dc:publisher th:text="${publisher}">jindle</dc:publisher>
+            <dc:creator th:text="${creator}">Keendly</dc:creator>
+            <dc:publisher th:text="${publisher}">Keendly</dc:publisher>
             <dc:subject th:text="${subject}">news</dc:subject>
             <dc:date th:text="${date}">13 February 2011</dc:date>
             <dc:description th:text="${description}"></dc:description>

@@ -13,7 +13,7 @@
         <text th:text="${title}">¡Olé! Magazyn</text>
     </docTitle>
     <docAuthor>
-        <text th:text="${creator}">jindle</text>
+        <text th:text="${creator}">Keendly</text>
     </docAuthor>
     <navMap>
         <navPoint th:attr="playOrder=${#ids.seq('')}" class="periodical" id="periodical">

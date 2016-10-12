@@ -65,6 +65,18 @@ public class GeneratorTest {
         assertNotNull(result);
     }
 
+    @Test
+    public void testGenerate_unsupportedImgTitleAttribute() throws Exception {
+        // given
+        Book book = bookWithContent(fromResource("/test-articles/unsupported-title-tag.html"));
+
+        // when
+        String result = generator.generate(book);
+
+        // then
+        assertNotNull(result);
+    }
+
     private Book bookWithContent(String content){
         return Book.builder()
             .title("TEST_BOOK")

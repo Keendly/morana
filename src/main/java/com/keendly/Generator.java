@@ -25,7 +25,7 @@ public class Generator {
 
     private static final Logger LOG = LoggerFactory.getLogger(Generator.class);
     private static final String SECTIONS_DIR = "sections";
-    private static final String OPF_FILE_NAME = "jindle.opf";
+    private static final String OPF_FILE_NAME = "keendly.opf";
 
     private String tempDirectory;
 

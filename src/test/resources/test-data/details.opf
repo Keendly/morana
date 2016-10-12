@@ -4,8 +4,8 @@
         <dc-metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
             <dc:title>TEST_BOOK</dc:title>
             <dc:language>en-gb</dc:language>
-            <dc:creator>jindle</dc:creator>
-            <dc:publisher>jindle</dc:publisher>
+            <dc:creator>Keendly</dc:creator>
+            <dc:publisher>Keendly</dc:publisher>
             <dc:subject>news</dc:subject>
             <dc:date>2015-01-01</dc:date>
             <dc:description>TEST</dc:description>
