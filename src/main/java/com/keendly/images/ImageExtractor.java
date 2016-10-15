@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ImageExtractor {
 
-    public static int MAX_IMAGES = 300; // max number of images to extract
+    public static int MAX_IMAGES = 100; // max number of images to extract
 
     private static final Logger LOG = LoggerFactory.getLogger(ImageExtractor.class);
     private static final int REQUEST_TIMEOUT = 60 * 1000;// 1 minute
