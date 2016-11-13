@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.Map;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,4 +22,5 @@ public class Article extends Numbered {
     @Setter
     private String content;
     private Date date;
+    private Map<String, String> actions;
 }
