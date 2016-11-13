@@ -14,6 +14,7 @@ import java.util.Date;
 @Builder
 public class Article extends Numbered {
 
+    private String id;
     private String url;
     private String author;
     private String title;
