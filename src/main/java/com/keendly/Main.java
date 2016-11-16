@@ -78,6 +78,22 @@ public class Main {
             return;
         }
 
+        if (arguments.localFile != null){
+            try {
+                File f = new File(arguments.localFile);
+                Book book = new ObjectMapper().readValue(f, Book.class);
+                String ebookPath = new Generator("/tmp", kindlegenPath).generate(book);
+
+                LOG.info("Generated: {}", ebookPath);
+            } catch (IOException e){
+                e.printStackTrace();
+            } catch (GeneratorException e) {
+                e.printStackTrace();
+            }
+
+            return;
+        }
+
         while (true){
             LOG.debug("Polling for messages...");
             ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(arguments.queue.trim())
@@ -210,5 +226,8 @@ public class Main {
 
         @Parameter(names = "--onlyGenerate", description = "Only generate ebook, for debugging")
         String onlyGenerate;
+
+        @Parameter(names = "--localFile", description = "Generate ebook from local file, for debugging")
+        String localFile;
     }
 }
