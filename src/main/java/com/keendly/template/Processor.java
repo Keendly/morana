@@ -67,6 +67,7 @@ public class Processor {
         context.setVariable("author", article.getAuthor());
         context.setVariable("content", article.getContent());
         context.setVariable("date", article.getDate());
+        context.setVariable("actions", article.getActions());
         return htmlEngine.process("article.html", context);
     }
 

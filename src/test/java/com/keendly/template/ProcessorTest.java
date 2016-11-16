@@ -4,14 +4,17 @@ import static java.util.Arrays.*;
 import static org.junit.Assert.*;
 import static org.xmlunit.builder.DiffBuilder.*;
 
-import com.keendly.utils.BookUtils;
 import com.keendly.model.Article;
 import com.keendly.model.Book;
 import com.keendly.model.Section;
+import com.keendly.utils.BookUtils;
 import org.junit.Test;
 import org.xmlunit.builder.Input;
 import org.xmlunit.diff.Diff;
+
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ProcessorTest {
 
@@ -82,6 +85,62 @@ public class ProcessorTest {
 
     // then
     assertTheSame(html, "/test-data/article.html");
+  }
+
+  @Test
+  public void testArticle_noAuthor() {
+    // given
+    Article article = Article.builder()
+        .title("article_title")
+        .content("<div>test</div>")
+        .build();
+
+    // when
+    String html = processor.article(article);
+
+    // then
+    assertTheSame(html, "/test-data/article_no_author.html");
+  }
+
+  @Test
+  public void testAritlce_withActions() {
+    // given
+    Map<String, String> actions = new HashMap<>();
+    actions.put("Keep unread", "http://blabla/unread_action");
+    actions.put("Save for later", "http://blabla/save_action");
+
+    Article article = Article.builder()
+        .title("article_title")
+        .author("Hakuna Matata")
+        .content("<div>test</div>")
+        .actions(actions)
+        .build();
+
+    // when
+    String html = processor.article(article);
+
+    // then
+    assertTheSame(html, "/test-data/article_actions.html");
+  }
+
+  @Test
+  public void testAritlce_withActions_noAuthor() {
+    // given
+    Map<String, String> actions = new HashMap<>();
+    actions.put("Keep unread", "http://blabla/unread_action");
+    actions.put("Save for later", "http://blabla/save_action");
+
+    Article article = Article.builder()
+        .title("article_title")
+        .content("<div>test</div>")
+        .actions(actions)
+        .build();
+
+    // when
+    String html = processor.article(article);
+
+    // then
+    assertTheSame(html, "/test-data/article_actions_no_author.html");
   }
 
   private Book generateBook(){
