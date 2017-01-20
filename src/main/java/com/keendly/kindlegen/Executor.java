@@ -7,30 +7,18 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.UUID;
 
 public class Executor {
 
   private static final long TIMEOUT = 60 * 5000; // 5 min;
-  private static final String RESULT_FILE_NAME = "keendly.mobi";
 
-  private String kindleGenPath;
-
-  private String workingDirectory;
-  private String opfFileName;
-  private String resultFilePath;
-
-  public Executor(String kindleGenPath, String workingDirectory, String opfFileName){
-    this.kindleGenPath = kindleGenPath;
-    this.workingDirectory = workingDirectory;
-    this.opfFileName = opfFileName;
-    this.resultFilePath = workingDirectory + File.separator + RESULT_FILE_NAME;
-  }
-
-  public String run() throws IOException, TimeoutException, InterruptedException, KindleGenException {
-    String command = kindleGenPath + " -c2 -o " + RESULT_FILE_NAME + " " + opfFileName;
+  public String compress(String directory) throws IOException, TimeoutException, InterruptedException, KindleGenException {
+    String resultFilePath = "/tmp/" + UUID.randomUUID().toString().replace("-", "") + ".tar.gz";
+    String command = "tar zcf " + resultFilePath + " -C " + "/tmp" + File.separator + directory + " .";
 //    command = nice(command);
     ProcessBuilder pb = new ProcessBuilder(command.split(" "));
-    pb.directory(new File(workingDirectory));
+//    pb.directory(new File(workingDirectory));
     pb.redirectErrorStream(true);
     Process process =  pb.start();
 

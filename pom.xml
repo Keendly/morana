@@ -21,6 +21,7 @@
         <apache-tika.version>1.9</apache-tika.version>
         <imgscalr.version>4.2</imgscalr.version>
         <aws-sdk.version>1.10.52</aws-sdk.version>
+        <aws-lambda.version>1.1.0</aws-lambda.version>
         <protobuf.version>2.6.1</protobuf.version>
         <log4j-json.version>1.0</log4j-json.version>
         <jcommander.version>1.48</jcommander.version>
@@ -64,41 +65,28 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.6</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>com.keendly.Main</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
     <dependencies>
         <!-- AWS -->
         <dependency>
             <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-s3</artifactId>
-            <version>${aws-sdk.version}</version>
+            <artifactId>aws-lambda-java-core</artifactId>
+            <version>${aws-lambda.version}</version>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-sqs</artifactId>
-            <version>${aws-sdk.version}</version>
+            <artifactId>aws-lambda-java-events</artifactId>
+            <version>${aws-lambda.version}</version>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
-            <artifactId>amazon-sqs-java-extended-client-lib</artifactId>
+            <artifactId>aws-lambda-java-log4j</artifactId>
             <version>1.0.0</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-sns</artifactId>
+            <artifactId>aws-java-sdk-s3</artifactId>
             <version>${aws-sdk.version}</version>
         </dependency>
         <!-- Thymeleaf -->

@@ -28,7 +28,7 @@ public class CoverCreator {
     }
 
     private void printSectionTitles(Book book, Graphics graphics){
-        List<Section> sections = book.getSections();
+        List<Section> sections = book.sections;
         int sectionsToShow = sections.size() <= MAX_SECTIONS ? sections.size() : MAX_SECTIONS - 1;
         for (int i = 0; i < sectionsToShow; i++){
             Section section = sections.get(i);
@@ -44,15 +44,15 @@ public class CoverCreator {
     }
 
     private String sectionText(Section section){
-        int size = section.getArticles() != null ? section.getArticles().size() : 0;
+        int size = section.articles != null ? section.articles.size() : 0;
         return getNormalizedTitle(section) + " (" + size + ")";
     }
 
     private String getNormalizedTitle(Section section){
-        if (section.getTitle().length() <= SECTION_TITLE_MAX_LENGTH){
-            return section.getTitle();
+        if (section.title.length() <= SECTION_TITLE_MAX_LENGTH){
+            return section.title;
         } else {
-            return section.getTitle().substring(0, SECTION_TITLE_MAX_LENGTH) + "...";
+            return section.title.substring(0, SECTION_TITLE_MAX_LENGTH) + "...";
         }
     }
 }

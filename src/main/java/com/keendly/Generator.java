@@ -2,10 +2,7 @@ package com.keendly;
 
 import com.keendly.cover.CoverCreator;
 import com.keendly.images.ImageExtractor;
-import com.keendly.kindlegen.Executor;
 import com.keendly.kindlegen.Preprocessor;
-import com.keendly.kindlegen.exception.KindleGenException;
-import com.keendly.kindlegen.exception.TimeoutException;
 import com.keendly.model.Article;
 import com.keendly.model.Book;
 import com.keendly.model.Section;
@@ -27,7 +24,7 @@ public class Generator {
     private static final String SECTIONS_DIR = "sections";
     private static final String OPF_FILE_NAME = "keendly.opf";
 
-    private String tempDirectory;
+    private String tempDirectory = "/tmp";
 
     private static Processor templateProcessor = new Processor();
     private static CoverCreator coverCreator = new CoverCreator();
@@ -35,16 +32,12 @@ public class Generator {
     // instance field to keep track number of images per ebook
     private ImageExtractor imageExtractor = new ImageExtractor();
 
-    private String kindleGenPath;
-
-    public Generator(String tempDirectory, String kindleGenPath){
-        this.tempDirectory = tempDirectory;
-        this.kindleGenPath = kindleGenPath;
-    }
-
     public String generate(Book book) throws GeneratorException {
+
         BookUtils.setNumbers(book);
         String bookDirectory = UUID.randomUUID().toString();
+
+        int articleCounter = 0;
 
         try {
             createBookDirectory(bookDirectory);
@@ -56,20 +49,25 @@ public class Generator {
                 saveSection(section, bookDirectory);
                 for (Article article : section.getArticles()){
                     saveArticle(section, article, bookDirectory);
+                    articleCounter++;
                 }
             }
             imageExtractor.close();
-            return generateMobi(bookDirectory);
-        } catch (IOException | InterruptedException e) {
+            System.out.println("articles: " + articleCounter);
+
+            return bookDirectory;
+//            return generateMobi(bookDirectory);
+        } catch (Exception e) {
             LOG.error("Couldn't generate ebook", e);
             throw new GeneratorException(e);
-        } catch (KindleGenException e){
-            LOG.error("Error calling kindlegen, exit value: " + e.getExitValue(), e);
-            LOG.error(e.getOutput());
-            throw new GeneratorException(e);
-        } catch (TimeoutException e) {
-            LOG.error("Timeout calling kindlegen", e);
-            throw new GeneratorException(e);
+//        } catch (KindleGenException e){
+//            LOG.error("Error calling kindlegen, exit value: " + e.getExitValue(), e);
+//            LOG.error(e.getOutput());
+//            System.out.println("articles: " + articleCounter);
+//            throw new GeneratorException(e);
+//        } catch (TimeoutException e) {
+//            LOG.error("Timeout calling kindlegen", e);
+//            throw new GeneratorException(e);
         }
     }
 
@@ -114,7 +112,7 @@ public class Generator {
             imageExtractor.extractImages(document, article.getUrl(),
                 bookFilePath(dir, SECTIONS_DIR + File.separator + section.getHref()));
 
-            article.setContent(document.body().html());
+            article.content = document.body().html();
         } catch (Exception e){
             LOG.error("Error processing article", e);
         }
@@ -141,11 +139,11 @@ public class Generator {
         FileUtils.writeStringToFile(new File(filePath), content, "UTF-8");
     }
 
-    private String generateMobi(String bookDirectory)
-        throws InterruptedException, IOException, KindleGenException, TimeoutException {
-        String workingDirectory = tempDirectory + File.separator + bookDirectory;
-        Executor executor = new Executor(kindleGenPath, workingDirectory, OPF_FILE_NAME);
-        return executor.run();
-    }
+//    private String generateMobi(String bookDirectory)
+//        throws InterruptedException, IOException, KindleGenException, TimeoutException {
+//        String workingDirectory = tempDirectory + File.separator + bookDirectory;
+//        Executor executor = new Executor(kindleGenPath, workingDirectory, OPF_FILE_NAME);
+//        return executor.run();
+//    }
 }
 

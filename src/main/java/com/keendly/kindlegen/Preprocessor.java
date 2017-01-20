@@ -14,6 +14,8 @@ public class Preprocessor {
 
     public void preprocess(){
         removeUnnecessaryImgAttributes();
+        removeOnclick();
+        removeStyle();
     }
 
     private void removeUnnecessaryImgAttributes(){
@@ -27,6 +29,19 @@ public class Preprocessor {
         for (Element element : elements){
             element.removeAttr("alt");
             element.removeAttr("title");
+        }
+    }
+
+    private void removeOnclick(){
+        Elements elements = document.select("a");
+        for (Element element : elements){
+            element.removeAttr("onclick");
+        }
+    }
+
+    private void removeStyle(){
+        for (Element element : document.getAllElements()) {
+            element.removeAttr("style");
         }
     }
 }
