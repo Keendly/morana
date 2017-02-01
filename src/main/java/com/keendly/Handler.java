@@ -33,6 +33,7 @@ public class Handler implements RequestHandler<DeliveryRequest, String> {
     private static final Logger LOG = LoggerFactory.getLogger(Handler.class);
 
     private static final String BUCKET = "keendly";
+    private static final String KEY_PATTERN = "ebooks/%s/keendly.tar.gz";
     private static AmazonS3 s3 = new AmazonS3Client();
 
     @Override
@@ -45,7 +46,7 @@ public class Handler implements RequestHandler<DeliveryRequest, String> {
             String ebookDirPath = new Generator().generate(book);
             String ebookArchivePath = new Executor().compress(ebookDirPath);
 
-            String key = "ebooks/" + UUID.randomUUID().toString() + "/keendly.tar.gz";
+            String key = String.format(KEY_PATTERN, UUID.randomUUID().toString());
             storeEbookToS3(BUCKET, key, ebookArchivePath);
 
             return key;
