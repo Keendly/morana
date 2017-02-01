@@ -1,4 +1,4 @@
-package com.keendly.model;
+package com.keendly.model.book;
 
 import lombok.Setter;
 

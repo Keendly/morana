@@ -22,7 +22,6 @@
         <imgscalr.version>4.2</imgscalr.version>
         <aws-sdk.version>1.10.52</aws-sdk.version>
         <aws-lambda.version>1.1.0</aws-lambda.version>
-        <protobuf.version>2.6.1</protobuf.version>
         <log4j-json.version>1.0</log4j-json.version>
         <jcommander.version>1.48</jcommander.version>
     </properties>
@@ -76,11 +75,6 @@
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
-            <artifactId>aws-lambda-java-events</artifactId>
-            <version>${aws-lambda.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.amazonaws</groupId>
             <artifactId>aws-lambda-java-log4j</artifactId>
             <version>1.0.0</version>
         </dependency>
@@ -106,12 +100,6 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>${commons-io.version}</version>
-        </dependency>
-        <!-- JCommander -->
-        <dependency>
-            <groupId>com.beust</groupId>
-            <artifactId>jcommander</artifactId>
-            <version>${jcommander.version}</version>
         </dependency>
         <!-- Logging -->
         <dependency>
@@ -157,12 +145,6 @@
             <groupId>org.imgscalr</groupId>
             <artifactId>imgscalr-lib</artifactId>
             <version>${imgscalr.version}</version>
-        </dependency>
-        <!-- Protobuf -->
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-            <version>${protobuf.version}</version>
         </dependency>
         <!-- Test -->
         <dependency>

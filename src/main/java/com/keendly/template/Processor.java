@@ -1,8 +1,8 @@
 package com.keendly.template;
 
-import com.keendly.model.Article;
-import com.keendly.model.Book;
-import com.keendly.model.Section;
+import com.keendly.model.book.Article;
+import com.keendly.model.book.Book;
+import com.keendly.model.book.Section;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;

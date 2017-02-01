@@ -1,0 +1,43 @@
+<package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="">
+    <metadata>
+        <meta name="cover" content="cover-image"/>
+        <dc-metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+            <dc:title>TEST_BOOK</dc:title>
+            <dc:language>en-gb</dc:language>
+            <dc:creator>Keendly</dc:creator>
+            <dc:publisher>Keendly</dc:publisher>
+            <dc:subject>news</dc:subject>
+            <dc:date>2015-01-01</dc:date>
+            <dc:description>TEST</dc:description>
+        </dc-metadata>
+
+        <x-metadata>
+            <output content-type="application/x-mobipocket-subscription-magazine" encoding="utf-8"></output>
+        </x-metadata>
+    </metadata>
+    <manifest>
+        <item href="contents.html" media-type="application/xhtml+xml" id="contents"></item>
+        <item href="nav-contents.ncx" media-type="application/x-dtbncx+xml" id="nav-contents"></item>
+        <item href="cover.jpg" media-type="image/jpeg" id="cover-image"/>
+        <item href="" media-type="image/gif" id="masthead"></item>
+        <item media-type="application/xhtml+xml" href="sections/000/section.html" id="item-000"></item>
+        <item media-type="application/xhtml+xml" href="sections/000/000.html" id="item-000000"></item>
+        <item media-type="application/xhtml+xml" href="sections/000/001.html" id="item-000001"></item>
+        <item media-type="application/xhtml+xml" href="sections/001/section.html" id="item-001"></item>
+        <item media-type="application/xhtml+xml" href="sections/001/000.html" id="item-001000"></item>
+        <item media-type="application/xhtml+xml" href="sections/001/001.html" id="item-001001"></item>
+    </manifest>
+    <spine toc="nav-contents">
+        <itemref idref="contents"></itemref>
+        <itemref idref="item-000"></itemref>
+        <itemref idref="item-000000"></itemref>
+        <itemref idref="item-000001"></itemref>
+        <itemref idref="item-001"></itemref>
+        <itemref idref="item-001000"></itemref>
+        <itemref idref="item-001001"></itemref>
+    </spine>
+    <guide>
+        <reference href="contents.html" type="toc" title="Table of Contents"></reference>
+        <reference href="sections/000/000.html" type="text" title="Beginning"/>
+    </guide>
+</package>

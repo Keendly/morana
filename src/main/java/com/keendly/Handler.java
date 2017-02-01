@@ -11,18 +11,19 @@ import com.amazonaws.util.IOUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.keendly.model.Article;
-import com.keendly.model.Book;
+import com.keendly.model.book.Article;
+import com.keendly.model.book.Book;
 import com.keendly.model.DeliveryArticle;
 import com.keendly.model.DeliveryItem;
 import com.keendly.model.DeliveryRequest;
 import com.keendly.model.ExtractResult;
-import com.keendly.model.Section;
+import com.keendly.model.book.Section;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -60,33 +61,39 @@ public class Handler implements RequestHandler<DeliveryRequest, String> {
 
     public static Book mapDeliveryRequestAndExtractResultToBook
         (DeliveryRequest deliveryRequest, List<ExtractResult> articles){
-        Book book = new Book();
-        book.title = "Keendly Feeds";
-        book.creator = "Keendly";
-        book.subject = "News";
-        book.language = "en-GB";
+        Book book = Book.builder()
+            .title("Keendly Feeds")
+            .creator("Keendly")
+            .subject("News")
+            .language("en-GB")
+            .sections(new ArrayList<>())
+            .build();
+
         for (DeliveryItem item : deliveryRequest.items){
             if (item.articles == null || item.articles.isEmpty()){
                 continue;
             }
-            Section section = new Section();
-            section.title = item.title;
+
+            Section section = Section.builder()
+                .title(item.title)
+                .articles(new ArrayList<>())
+                .build();
 
             for (DeliveryArticle article : item.articles){
-                Article bookArticle = new Article();
-                bookArticle.id = article.id;
-                bookArticle.title = article.title;
-                bookArticle.author = article.author;
-                bookArticle.date  = article.timestamp != null ? new Date(article.timestamp) : null;
-                bookArticle.url = article.url;
+                Article.ArticleBuilder articleBuilder = Article.builder()
+                    .id(article.id)
+                    .title(article.title)
+                    .author(article.author)
+                    .date(article.timestamp != null ? new Date(article.timestamp) : null)
+                    .url(article.url);
                 if (articles != null && getArticleText(article.url, articles) != null){
-                    bookArticle.content = getArticleText(article.url, articles);
+                    articleBuilder.content(getArticleText(article.url, articles));
                 } else {
-                    bookArticle.content = article.content;
+                    articleBuilder.content(article.content);
                 }
-                section.articles.add(bookArticle);
+                section.getArticles().add(articleBuilder.build());
             }
-            book.sections.add(section);
+            book.getSections().add(section);
         }
         return book;
     }

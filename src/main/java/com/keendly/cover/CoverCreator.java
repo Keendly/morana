@@ -1,7 +1,7 @@
 package com.keendly.cover;
 
-import com.keendly.model.Book;
-import com.keendly.model.Section;
+import com.keendly.model.book.Book;
+import com.keendly.model.book.Section;
 
 import javax.imageio.ImageIO;
 import java.util.List;
@@ -28,7 +28,7 @@ public class CoverCreator {
     }
 
     private void printSectionTitles(Book book, Graphics graphics){
-        List<Section> sections = book.sections;
+        List<Section> sections = book.getSections();
         int sectionsToShow = sections.size() <= MAX_SECTIONS ? sections.size() : MAX_SECTIONS - 1;
         for (int i = 0; i < sectionsToShow; i++){
             Section section = sections.get(i);

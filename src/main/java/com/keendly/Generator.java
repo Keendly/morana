@@ -2,9 +2,9 @@ package com.keendly;
 
 import com.keendly.cover.CoverCreator;
 import com.keendly.images.ImageExtractor;
-import com.keendly.model.Article;
-import com.keendly.model.Book;
-import com.keendly.model.Section;
+import com.keendly.model.book.Article;
+import com.keendly.model.book.Book;
+import com.keendly.model.book.Section;
 import com.keendly.template.Processor;
 import com.keendly.utils.BookUtils;
 import org.apache.commons.io.FileUtils;
@@ -93,7 +93,7 @@ public class Generator {
             imageExtractor.extractImages(document, article.getUrl(),
                 bookFilePath(dir, SECTIONS_DIR + File.separator + section.getHref()));
 
-            article.content = document.body().html();
+            article.setContent(document.body().html());
         } catch (Exception e){
             LOG.error("Error processing article", e);
         }
