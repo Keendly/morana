@@ -2,7 +2,6 @@ package com.keendly;
 
 import com.keendly.cover.CoverCreator;
 import com.keendly.images.ImageExtractor;
-import com.keendly.kindlegen.Preprocessor;
 import com.keendly.model.Article;
 import com.keendly.model.Book;
 import com.keendly.model.Section;
@@ -32,43 +31,25 @@ public class Generator {
     // instance field to keep track number of images per ebook
     private ImageExtractor imageExtractor = new ImageExtractor();
 
-    public String generate(Book book) throws GeneratorException {
+    public String generate(Book book) throws IOException {
 
         BookUtils.setNumbers(book);
         String bookDirectory = UUID.randomUUID().toString();
 
-        int articleCounter = 0;
-
-        try {
-            createBookDirectory(bookDirectory);
-            saveCover(book, bookDirectory);
-            saveDetailsFile(book, bookDirectory);
-            saveContentsHTML(book, bookDirectory);
-            saveContentsNCX(book, bookDirectory);
-            for (Section section : book.getSections()){
-                saveSection(section, bookDirectory);
-                for (Article article : section.getArticles()){
-                    saveArticle(section, article, bookDirectory);
-                    articleCounter++;
-                }
+        createBookDirectory(bookDirectory);
+        saveCover(book, bookDirectory);
+        saveDetailsFile(book, bookDirectory);
+        saveContentsHTML(book, bookDirectory);
+        saveContentsNCX(book, bookDirectory);
+        for (Section section : book.getSections()){
+            saveSection(section, bookDirectory);
+            for (Article article : section.getArticles()){
+                saveArticle(section, article, bookDirectory);
             }
-            imageExtractor.close();
-            System.out.println("articles: " + articleCounter);
-
-            return bookDirectory;
-//            return generateMobi(bookDirectory);
-        } catch (Exception e) {
-            LOG.error("Couldn't generate ebook", e);
-            throw new GeneratorException(e);
-//        } catch (KindleGenException e){
-//            LOG.error("Error calling kindlegen, exit value: " + e.getExitValue(), e);
-//            LOG.error(e.getOutput());
-//            System.out.println("articles: " + articleCounter);
-//            throw new GeneratorException(e);
-//        } catch (TimeoutException e) {
-//            LOG.error("Timeout calling kindlegen", e);
-//            throw new GeneratorException(e);
         }
+        imageExtractor.close();
+
+        return bookDirectory;
     }
 
     private void createBookDirectory(String bookDirectory) throws IOException {
@@ -138,12 +119,5 @@ public class Generator {
     private void saveToFile(String filePath, String content) throws IOException {
         FileUtils.writeStringToFile(new File(filePath), content, "UTF-8");
     }
-
-//    private String generateMobi(String bookDirectory)
-//        throws InterruptedException, IOException, KindleGenException, TimeoutException {
-//        String workingDirectory = tempDirectory + File.separator + bookDirectory;
-//        Executor executor = new Executor(kindleGenPath, workingDirectory, OPF_FILE_NAME);
-//        return executor.run();
-//    }
 }
 

@@ -1,0 +1,10 @@
+{
+  "name": "morana",
+  "runtime": "java8",
+  "description": "Function to prepare input files for Kindlegen",
+  "region": "eu-west-1",
+  "handler": "com.keendly.Handler::handleRequest",
+  "role": "arn:aws:iam::625416862388:role/lambda_s3_exec_role",
+  "timeout": 300,
+  "memory": 1024
+}

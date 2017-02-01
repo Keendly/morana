@@ -11,7 +11,6 @@ import com.amazonaws.util.IOUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.keendly.kindlegen.Executor;
 import com.keendly.model.Article;
 import com.keendly.model.Book;
 import com.keendly.model.DeliveryArticle;
@@ -31,7 +30,6 @@ import java.util.UUID;
 public class Handler implements RequestHandler<DeliveryRequest, String> {
 
     private static final Logger LOG = LoggerFactory.getLogger(Handler.class);
-
 
     private static final String BUCKET = "keendly";
     private static AmazonS3 s3 = new AmazonS3Client();

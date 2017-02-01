@@ -1,4 +1,4 @@
-package com.keendly.kindlegen;
+package com.keendly;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;

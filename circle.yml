@@ -3,15 +3,8 @@ machine:
     version: oraclejdk8
   services:
     - docker
-  environment:
-    KINDLEGEN_PATH: $HOME/kindlegen/kindlegen
 
 test:
-  pre:
-    - mkdir -p $HOME/kindlegen
-    - wget "http://kindlegen.s3.amazonaws.com/kindlegen_linux_2.6_i386_v2_9.tar.gz"
-    - tar -zxf kindlegen_linux_2.6_i386_v2_9.tar.gz
-    - cp kindlegen $HOME/kindlegen/
   override:
     - mvn test
   post:
@@ -22,10 +15,7 @@ deployment:
   master:
     branch: master
     commands:
-      - mvn package -DskipTests
-      - find . -type f -regex ".*/target/jarilo.*.jar" -exec cp {} $CIRCLE_ARTIFACTS/ \;
-      - docker build -t jarilo .
-      - aws ecr get-login --region us-east-1 | sh
-      - docker tag jarilo:latest 625416862388.dkr.ecr.us-east-1.amazonaws.com/jarilo:latest
-      - docker push 625416862388.dkr.ecr.us-east-1.amazonaws.com/jarilo:latest
-
+      - pip install j2cli pyyaml git+https://github.com/Keendly/lambda-uploader.git
+      - mvn clean package -DskipTests
+      - find . -type f -regex ".*/target/morana.*jar" -exec cp {} lambda_function.zip \;
+      - lambda-uploader --no-build
