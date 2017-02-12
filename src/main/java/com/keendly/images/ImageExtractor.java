@@ -116,6 +116,9 @@ public class ImageExtractor {
                     String extension = ExtensionUtils.extractFileExtension(request.getKey().build(), response);
                     if (StringUtils.isEmpty(extension)){
                         LOG.warn("Empty extension for {}", request.getKey().build().getUrl());
+                        for (Element element : request.getValue()){
+                            element.remove();
+                        }
                         counter.countDown();
                         return response;
                     }
