@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -21,5 +22,5 @@ public class Article extends Numbered {
     private String title;
     private String content;
     private Date date;
-    private Map<String, String> actions = new HashMap<>();
+    @Singular private Map<String, String> actions = new HashMap<>();
 }

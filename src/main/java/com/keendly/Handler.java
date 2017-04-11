@@ -24,8 +24,10 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class Handler implements RequestHandler<DeliveryRequest, String> {
@@ -41,8 +43,9 @@ public class Handler implements RequestHandler<DeliveryRequest, String> {
         try {
             input = deserializeDeliveryRequest(input);
             input = deserializeExtractResult(input);
+            input = deserializeActionLinks(input);
 
-            Book book = mapDeliveryRequestAndExtractResultToBook(input, input.extractResults);
+            Book book = mapToBook(input);
             String ebookDirPath = new Generator().generate(book);
             String ebookArchivePath = new Executor().compress(ebookDirPath);
 
@@ -60,8 +63,10 @@ public class Handler implements RequestHandler<DeliveryRequest, String> {
         LOG.debug("Ebook data stored in S3, key: {}, etag: {} ", key, result.getETag());
     }
 
-    public static Book mapDeliveryRequestAndExtractResultToBook
-        (DeliveryRequest deliveryRequest, List<ExtractResult> articles){
+    public static Book mapToBook(DeliveryRequest deliveryRequest){
+        List<ExtractResult> articles = deliveryRequest.extractResults;
+        Map<String, List<DeliveryRequest.ActionLink>> actionLinks = deliveryRequest.actionLinksContent;
+
         Book book = Book.builder()
             .title("Keendly Feeds")
             .creator("Keendly")
@@ -92,6 +97,11 @@ public class Handler implements RequestHandler<DeliveryRequest, String> {
                 } else {
                     articleBuilder.content(article.content);
                 }
+                if (actionLinks.containsKey(article.id)){
+                    for (DeliveryRequest.ActionLink link : actionLinks.get(article.id)){
+                        articleBuilder.action(link.action, link.link);
+                    }
+                }
                 section.getArticles().add(articleBuilder.build());
             }
             book.getSections().add(section);
@@ -118,6 +128,23 @@ public class Handler implements RequestHandler<DeliveryRequest, String> {
                 new TypeReference<List<ExtractResult>>(){});
 
         request.extractResults = items;
+        return request;
+    }
+
+    private DeliveryRequest deserializeActionLinks(DeliveryRequest request) throws IOException {
+        if (request.actionLinks != null){
+            ObjectMapper mapper = new ObjectMapper();
+            GetObjectRequest getObjectRequest = new GetObjectRequest(BUCKET, request.actionLinks);
+            com.amazonaws.services.s3.model.S3Object object = s3.getObject(getObjectRequest);
+
+            Map<String, List<DeliveryRequest.ActionLink>> items = mapper
+                .readValue(IOUtils.toString(object.getObjectContent()).getBytes("UTF8"),
+                    new TypeReference<Map<String, List<DeliveryRequest.ActionLink>>>(){});
+
+            request.actionLinksContent = items;
+        } else {
+            request.actionLinksContent = Collections.emptyMap();
+        }
         return request;
     }
 
