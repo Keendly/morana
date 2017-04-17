@@ -1,6 +1,5 @@
 package com.keendly;
 
-import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -32,11 +31,11 @@ public class Preprocessor {
             element.removeAttr("title");
 
             // remove 'data-' attributes
-            for (Attribute attribute : element.attributes()){
-                if (attribute.getKey().startsWith("data-")){
-                    element.removeAttr(attribute.getKey());
-                }
-            }
+//            for (Attribute attribute : element.attributes()){
+//                if (attribute.getKey().startsWith("data-")){
+//                    element.removeAttr(attribute.getKey());
+//                }
+//            }
         }
 
 

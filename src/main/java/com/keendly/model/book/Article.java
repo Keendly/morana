@@ -23,4 +23,5 @@ public class Article extends Numbered {
     private String content;
     private Date date;
     @Singular private Map<String, String> actions = new HashMap<>();
+    private Integer readingTime;
 }

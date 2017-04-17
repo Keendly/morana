@@ -146,6 +146,12 @@
             <artifactId>imgscalr-lib</artifactId>
             <version>${imgscalr.version}</version>
         </dependency>
+        <!-- Language detection -->
+        <dependency>
+            <groupId>com.optimaize.languagedetector</groupId>
+            <artifactId>language-detector</artifactId>
+            <version>0.6</version>
+        </dependency>
         <!-- Test -->
         <dependency>
             <groupId>junit</groupId>

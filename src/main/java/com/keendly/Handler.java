@@ -18,6 +18,7 @@ import com.keendly.model.DeliveryItem;
 import com.keendly.model.DeliveryRequest;
 import com.keendly.model.ExtractResult;
 import com.keendly.model.book.Section;
+import com.keendly.readingtime.ReadingTimeCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,7 @@ public class Handler implements RequestHandler<DeliveryRequest, String> {
     private static final String BUCKET = "keendly";
     private static final String KEY_PATTERN = "ebooks/%s/keendly.tar.gz";
     private static AmazonS3 s3 = new AmazonS3Client();
+    private static ReadingTimeCalculator readingTimeCalculator = new ReadingTimeCalculator();
 
     @Override
     public String handleRequest(DeliveryRequest input, Context context) {
@@ -92,16 +94,22 @@ public class Handler implements RequestHandler<DeliveryRequest, String> {
                     .author(article.author)
                     .date(article.timestamp != null ? new Date(article.timestamp) : null)
                     .url(article.url);
+                String content;
                 if (articles != null && getArticleText(article.url, articles) != null){
-                    articleBuilder.content(getArticleText(article.url, articles));
+                    content = getArticleText(article.url, articles);
                 } else {
-                    articleBuilder.content(article.content);
+                    content = article.content;
                 }
+                articleBuilder.content(content);
+
                 if (actionLinks.containsKey(article.id)){
                     for (DeliveryRequest.ActionLink link : actionLinks.get(article.id)){
                         articleBuilder.action(link.action, link.link);
                     }
                 }
+                Integer readingTime = readingTimeCalculator.getReadingTime(content);
+                articleBuilder.readingTime(readingTime);
+
                 section.getArticles().add(articleBuilder.build());
             }
             book.getSections().add(section);
