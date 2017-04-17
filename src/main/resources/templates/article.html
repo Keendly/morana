@@ -13,8 +13,9 @@
             <a th:href="${action.value}" th:text="${action.key}"></a>
             <span th:if="!${iterationStatus.last}"> &#8226; </span>
         </small>
-        <small th:if="${readingTime != null}"> | </small>
-        <small th:if="${readingTime != null}" th:text="${readingTime} min read"></small>
+        <small th:if="${readingTime != null and (author != null or not #maps.isEmpty(actions))}"> | </small>
+        <small th:if="${readingTime != null and readingTime > 0}"><span th:text="${readingTime}"></span> min read</small>
+        <small th:if="${readingTime != null and readingTime == 0}">less than 1 min read</small>
         <div th:utext="${content}"></div>
     </body>
 </html>

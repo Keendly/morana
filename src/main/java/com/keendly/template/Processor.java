@@ -68,6 +68,7 @@ public class Processor {
         context.setVariable("content", article.getContent());
         context.setVariable("date", article.getDate());
         context.setVariable("actions", article.getActions());
+        context.setVariable("readingTime", article.getReadingTime());
         return htmlEngine.process("article.html", context);
     }
 

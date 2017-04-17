@@ -51,7 +51,6 @@ public class ProcessorTest {
 
     // when
     String contents = processor.contentsNCX(book);
-    System.out.println(contents);
 
     // then
     assertTheSame(contents, "/test-data/nav-contents.ncx");
@@ -141,6 +140,77 @@ public class ProcessorTest {
 
     // then
     assertTheSame(html, "/test-data/article_actions_no_author.html");
+  }
+
+  @Test
+  public void testArticle_readingTime() {
+    // given
+    Article article = Article.builder()
+        .title("article_title")
+        .content("<div>test</div>")
+        .readingTime(5)
+        .build();
+
+    // when
+    String html = processor.article(article);
+
+    // then
+    assertTheSame(html, "/test-data/article_readingtime.html");
+  }
+
+  @Test
+  public void testArticle_readingTime_lessThanOneMinute() {
+    // given
+    Article article = Article.builder()
+        .title("article_title")
+        .content("<div>test</div>")
+        .readingTime(0)
+        .build();
+
+    // when
+    String html = processor.article(article);
+
+    // then
+    assertTheSame(html, "/test-data/article_readingtime_lessthan1min.html");
+  }
+
+  @Test
+  public void testArticle_readingTime_author() {
+    // given
+    Article article = Article.builder()
+        .title("article_title")
+        .content("<div>test</div>")
+        .author("Hakuna Matata")
+        .readingTime(5)
+        .build();
+
+    // when
+    String html = processor.article(article);
+
+    // then
+    assertTheSame(html, "/test-data/article_readingtime_author.html");
+  }
+
+  @Test
+  public void testAritlce_readingTime_authorAndActions() {
+    // given
+    Map<String, String> actions = new HashMap<>();
+    actions.put("Keep unread", "http://blabla/unread_action");
+    actions.put("Save for later", "http://blabla/save_action");
+
+    Article article = Article.builder()
+        .title("article_title")
+        .content("<div>test</div>")
+        .author("Hakuna Matata")
+        .readingTime(5)
+        .actions(actions)
+        .build();
+
+    // when
+    String html = processor.article(article);
+
+    // then
+    assertTheSame(html, "/test-data/article_readingtime_author_actions.html");
   }
 
   private Book generateBook(){
