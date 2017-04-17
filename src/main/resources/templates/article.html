@@ -8,14 +8,15 @@
         <h2 th:text="${title}">Lucas – styl życia Dépor</h2>
         <hr style='border-top: dashed 1px;'/>
         <small th:if="${author != null}" th:text="${author}">Tomasz Pietrzyk</small>
-        <small th:if="${author != null and not #maps.isEmpty(actions)}"> | </small>
+        <small th:if="${readingTime != null and author != null}"> | </small>
+        <small th:if="${readingTime != null and readingTime > 0}"><span th:text="${readingTime}"></span> min read</small>
+        <small th:if="${readingTime != null and readingTime == 0}">less than 1 min read</small>
+
+        <small th:if="${(author != null or readingTime != null) and not #maps.isEmpty(actions)}"> | </small>
         <small th:each="action,iterationStatus : ${actions}">
             <a th:href="${action.value}" th:text="${action.key}"></a>
             <span th:if="!${iterationStatus.last}"> &#8226; </span>
         </small>
-        <small th:if="${readingTime != null and (author != null or not #maps.isEmpty(actions))}"> | </small>
-        <small th:if="${readingTime != null and readingTime > 0}"><span th:text="${readingTime}"></span> min read</small>
-        <small th:if="${readingTime != null and readingTime == 0}">less than 1 min read</small>
         <div th:utext="${content}"></div>
     </body>
 </html>
