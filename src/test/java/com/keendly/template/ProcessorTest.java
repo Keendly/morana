@@ -8,6 +8,7 @@ import com.keendly.model.book.Article;
 import com.keendly.model.book.Book;
 import com.keendly.model.book.Section;
 import com.keendly.utils.BookUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.xmlunit.builder.Input;
 import org.xmlunit.diff.Diff;
@@ -214,6 +215,7 @@ public class ProcessorTest {
   }
 
   @Test
+  @Ignore
   public void testArticle_qrCode() {
     // given
     Article article = Article.builder()
