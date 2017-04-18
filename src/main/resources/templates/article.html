@@ -19,6 +19,11 @@
         </small>
         <div th:utext="${content}"></div>
         <hr th:if="${qrCode != null}" style='border-top: dashed 1px;'/>
-        <img th:if="${qrCode != null}" th:src="${qrCode}"/>
+        <table th:if="${qrCode != null}">
+            <tr>
+                <td><img th:src="${qrCode}"/></td>
+                <td>Scan the code to visit article's webpage</td>
+            </tr>
+        </table>
     </body>
 </html>

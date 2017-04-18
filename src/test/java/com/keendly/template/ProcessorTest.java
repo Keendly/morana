@@ -192,7 +192,7 @@ public class ProcessorTest {
   }
 
   @Test
-  public void testAritlce_readingTime_authorAndActions() {
+  public void testArticle_readingTime_authorAndActions() {
     // given
     Map<String, String> actions = new HashMap<>();
     actions.put("Keep unread", "http://blabla/unread_action");
@@ -214,7 +214,7 @@ public class ProcessorTest {
   }
 
   @Test
-  public void testAritlce_qrCode() {
+  public void testArticle_qrCode() {
     // given
     Article article = Article.builder()
         .title("article_title")
