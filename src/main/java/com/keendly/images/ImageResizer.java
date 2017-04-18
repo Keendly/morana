@@ -10,7 +10,10 @@ public class ImageResizer {
     private static final int WIDTH = 600;
     private static final int HEIGHT = 800;
 
-    public BufferedImage resize(BufferedImage input) throws IOException {
-        return Scalr.resize(input, Scalr.Method.SPEED, Scalr.Mode.AUTOMATIC, WIDTH, HEIGHT);
+    public BufferedImage resizeIfNeeded(BufferedImage input) throws IOException {
+        if (input.getWidth() > WIDTH || input.getHeight() > HEIGHT){
+            return Scalr.resize(input, Scalr.Method.SPEED, Scalr.Mode.AUTOMATIC, WIDTH, HEIGHT);
+        }
+        return input;
     }
 }

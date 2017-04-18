@@ -161,7 +161,7 @@ public class ImageExtractor {
 
         // resize
         BufferedImage input = ImageIO.read(bis);
-        BufferedImage resized = imageResizer.resize(input);
+        BufferedImage resized = imageResizer.resizeIfNeeded(input);
 
         // save
         ImageIO.write(resized, "jpg", new File(filePath));
