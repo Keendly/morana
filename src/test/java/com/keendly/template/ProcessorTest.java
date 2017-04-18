@@ -213,6 +213,24 @@ public class ProcessorTest {
     assertTheSame(html, "/test-data/article_readingtime_author_actions.html");
   }
 
+  @Test
+  public void testAritlce_qrCode() {
+    // given
+    Article article = Article.builder()
+        .title("article_title")
+        .content("<div>test</div>")
+        .author("Hakuna Matata")
+        .readingTime(5)
+        .qrCode("blabla.png")
+        .build();
+
+    // when
+    String html = processor.article(article);
+
+    // then
+    assertTheSame(html, "/test-data/article_qrcode.html");
+  }
+
   private Book generateBook(){
     Book book = Book.builder()
         .title("TEST_BOOK")

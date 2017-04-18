@@ -5,6 +5,7 @@ import com.keendly.images.ImageExtractor;
 import com.keendly.model.book.Article;
 import com.keendly.model.book.Book;
 import com.keendly.model.book.Section;
+import com.keendly.qr.QrCodeGenerator;
 import com.keendly.template.Processor;
 import com.keendly.utils.BookUtils;
 import org.apache.commons.io.FileUtils;
@@ -27,6 +28,7 @@ public class Generator {
 
     private static Processor templateProcessor = new Processor();
     private static CoverCreator coverCreator = new CoverCreator();
+    private static QrCodeGenerator qrCodeGenerator = new QrCodeGenerator();
 
     // instance field to keep track number of images per ebook
     private ImageExtractor imageExtractor = new ImageExtractor();
@@ -90,8 +92,10 @@ public class Generator {
             Preprocessor preprocessor = new Preprocessor(document);
             preprocessor.preprocess();
 
-            imageExtractor.extractImages(document, article.getUrl(),
-                bookFilePath(dir, SECTIONS_DIR + File.separator + section.getHref()));
+            String sectionPath = bookFilePath(dir, SECTIONS_DIR + File.separator + section.getHref());
+            imageExtractor.extractImages(document, article.getUrl(), sectionPath);
+
+            article.setQrCode(qrCodeGenerator.generate(sectionPath, article.getUrl()));
 
             article.setContent(document.body().html());
         } catch (Exception e){

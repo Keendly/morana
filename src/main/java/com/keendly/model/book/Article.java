@@ -24,4 +24,5 @@ public class Article extends Numbered {
     private Date date;
     @Singular private Map<String, String> actions = new HashMap<>();
     private Integer readingTime;
+    private String qrCode;
 }

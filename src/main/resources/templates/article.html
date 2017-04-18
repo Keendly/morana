@@ -18,5 +18,7 @@
             <span th:if="!${iterationStatus.last}"> &#8226; </span>
         </small>
         <div th:utext="${content}"></div>
+        <hr th:if="${qrCode != null}" style='border-top: dashed 1px;'/>
+        <img th:if="${qrCode != null}" th:src="${qrCode}"/>
     </body>
 </html>

@@ -69,6 +69,7 @@ public class Processor {
         context.setVariable("date", article.getDate());
         context.setVariable("actions", article.getActions());
         context.setVariable("readingTime", article.getReadingTime());
+        context.setVariable("qrCode", article.getQrCode());
         return htmlEngine.process("article.html", context);
     }
 
