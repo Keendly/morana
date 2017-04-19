@@ -22,18 +22,11 @@ public class Preprocessor {
     private void removeUnnecessaryImgAttributes(){
         Elements elements = document.select("img");
 
-        // remove 'alt' attributes because they sometimes cause kindlegen fail, for example:
-        // alt="At a glance, <i>Pokemon Uranium</i> is pretty hard to distinguish from an official Nintendo release."
-
-        // remove 'title' attributes for the same reason
-        // title="A painting of martyr Oscar Arnulfo Romero, Metropoli    tan Cathedral, 2015</b><b>."
         for (Element element : elements){
-            element.removeAttr("alt");
-            element.removeAttr("title");
 
-            // remove 'data-' attributes
             for (Attribute attribute : element.attributes()){
-                if (attribute.getKey().startsWith("data-")){
+                // remove attributes that have < or > in value because they cause kindlegen crash
+                if (attribute.getValue().contains(">") || attribute.getValue().contains("<")){
                     element.removeAttr(attribute.getKey());
                 }
             }
