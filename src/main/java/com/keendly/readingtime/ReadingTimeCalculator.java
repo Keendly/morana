@@ -73,7 +73,7 @@ public class ReadingTimeCalculator {
     }
 
     public Integer getReadingTime(String content){
-        if (languageDetector == null || textObjectFactory == null){
+        if (languageDetector == null || textObjectFactory == null || content == null){
             // something went wrong during initialization
             return null;
         }
