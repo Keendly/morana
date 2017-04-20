@@ -15,25 +15,26 @@ public class Preprocessor {
 
     public void preprocess(){
         removeBrokenAttributes();
-        removeUnsupportedSVGs();
+        remvoeSVGs();
     }
 
-    private void removeUnsupportedSVGs(){
+    private void remvoeSVGs(){
         Elements elements = document.getElementsByTag("svg");
-        for (Element element : elements){
-            Elements children = element.getAllElements();
-            for (Element child : children){
-                if (child.tagName().equals("use")){
-                    child.remove();
-                }
-
-                for (Attribute attribute : child.attributes()){
-                    if (attribute.getKey().equals("xmlns")){
-                        element.removeAttr(attribute.getKey());
-                    }
-                }
-            }
-        }
+        elements.remove();
+//        for (Element element : elements){
+//            Elements children = element.getAllElements();
+//            for (Element child : children){
+//                if (child.tagName().equals("use")){
+//                    child.remove();
+//                }
+//
+//                for (Attribute attribute : child.attributes()){
+//                    if (attribute.getKey().equals("xmlns")){
+//                        element.removeAttr(attribute.getKey());
+//                    }
+//                }
+//            }
+//        }
     }
 
     private void removeBrokenAttributes(){
