@@ -14,35 +14,38 @@ public class Preprocessor {
     }
 
     public void preprocess(){
-        removeUnnecessaryImgAttributes();
-        removeOnclick();
-        removeStyle();
+        removeBrokenAttributes();
+        removeUnsupportedSVGs();
     }
 
-    private void removeUnnecessaryImgAttributes(){
-        Elements elements = document.select("img");
+    private void removeUnsupportedSVGs(){
+        Elements elements = document.getElementsByTag("svg");
+        for (Element element : elements){
+            Elements children = element.getAllElements();
+            for (Element child : children){
+                if (child.tagName().equals("use")){
+                    child.remove();
+                }
+
+                for (Attribute attribute : child.attributes()){
+                    if (attribute.getKey().equals("xmlns")){
+                        element.removeAttr(attribute.getKey());
+                    }
+                }
+            }
+        }
+    }
+
+    private void removeBrokenAttributes(){
+        Elements elements = document.getAllElements();
 
         for (Element element : elements){
-
             for (Attribute attribute : element.attributes()){
                 // remove attributes that have < or > in value because they cause kindlegen crash
                 if (attribute.getValue().contains(">") || attribute.getValue().contains("<")){
                     element.removeAttr(attribute.getKey());
                 }
             }
-        }
-    }
-
-    private void removeOnclick(){
-        Elements elements = document.select("a");
-        for (Element element : elements){
-            element.removeAttr("onclick");
-        }
-    }
-
-    private void removeStyle(){
-        for (Element element : document.getAllElements()) {
-            element.removeAttr("style");
         }
     }
 }

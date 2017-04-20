@@ -1,5 +1,5 @@
 {
-  "name": "morana",
+  "name": "morana_test",
   "runtime": "java8",
   "description": "Function to prepare input files for Kindlegen",
   "region": "eu-west-1",
