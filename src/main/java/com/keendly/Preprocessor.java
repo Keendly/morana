@@ -40,6 +40,10 @@ public class Preprocessor {
         Elements elements = document.getAllElements();
 
         for (Element element : elements){
+            if (element.tagName().equals("picture")){
+                element.remove();
+            }
+
             for (Attribute attribute : element.attributes()){
                 // remove attributes that have < or > in value because they cause kindlegen crash
                 if (attribute.getValue().contains(">") || attribute.getValue().contains("<")){
