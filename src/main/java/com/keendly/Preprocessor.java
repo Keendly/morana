@@ -5,6 +5,9 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 public class Preprocessor {
 
     private Document document;
@@ -16,6 +19,7 @@ public class Preprocessor {
     public void preprocess(){
         removeBrokenAttributes();
         tryToAvoidSegFault();
+        removeRelativeLinks();
     }
 
     private void tryToAvoidSegFault(){
@@ -34,5 +38,23 @@ public class Preprocessor {
                 }
             }
         }
+    }
+
+    private void removeRelativeLinks(){
+        for (Element element : document.getElementsByTag("a")){
+            if (!isAbsolute(element.attr("href"))){
+                element.removeAttr("href");
+            }
+        }
+    }
+
+    private boolean isAbsolute(String url) {
+        URI u;
+        try {
+            u = new URI(url);
+        } catch (URISyntaxException e) {
+            return false;
+        }
+        return u.isAbsolute();
     }
 }
