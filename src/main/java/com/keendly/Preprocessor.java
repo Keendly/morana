@@ -61,6 +61,6 @@ public class Preprocessor {
         } catch (URISyntaxException e) {
             return false;
         }
-        return u.isAbsolute();
+        return u.isAbsolute() && (u.getScheme().equals("http") || u.getScheme().equals("https"));
     }
 }
