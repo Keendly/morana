@@ -1,5 +1,6 @@
 package com.keendly;
 
+import com.amazonaws.util.StringUtils;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -42,8 +43,13 @@ public class Preprocessor {
 
     private void removeRelativeLinks(){
         for (Element element : document.getElementsByTag("a")){
+            // not absolute links wont work anyway, and they may cause kindlegen failures
             if (!isAbsolute(element.attr("href"))){
-                element.removeAttr("href");
+                if (!StringUtils.isNullOrEmpty(element.text())){
+                    // add only text
+                    element.after(element.text());
+                }
+                element.remove();
             }
         }
     }
