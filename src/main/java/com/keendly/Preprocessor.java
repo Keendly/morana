@@ -21,6 +21,7 @@ public class Preprocessor {
         removeBrokenAttributes();
         tryToAvoidSegFault();
         removeRelativeLinks();
+        removeVideo();
     }
 
     private void tryToAvoidSegFault(){
@@ -52,6 +53,10 @@ public class Preprocessor {
                 element.remove();
             }
         }
+    }
+
+    private void removeVideo(){
+        document.getElementsByTag("video").remove();
     }
 
     private boolean isAbsolute(String url) {
