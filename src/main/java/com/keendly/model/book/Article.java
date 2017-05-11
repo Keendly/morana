@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +20,7 @@ public class Article extends Numbered {
     private String author;
     private String title;
     private String content;
-    private Date date;
+    private String date;
     @Singular private Map<String, String> actions = new HashMap<>();
     private Integer readingTime;
     private String qrCode;

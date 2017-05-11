@@ -57,6 +57,42 @@ public class GeneratorTest {
         assertNotNull(result);
     }
 
+    @Test
+    public void testGenerate_dataAttribute() throws Exception {
+        // given
+        Book book = bookWithContent(fromResource("/test-articles/data-attributes.html"));
+
+        // when
+        String result = generator.generate(book);
+
+        // then
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testGenerate_segFault() throws Exception {
+        // given
+        Book book = bookWithContent(fromResource("/test-articles/segfault.html"));
+
+        // when
+        String result = generator.generate(book);
+
+        // then
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testGenerate_relativeLinks() throws Exception {
+        // given
+        Book book = bookWithContent(fromResource("/test-articles/relative_links.html"));
+
+        // when
+        String result = generator.generate(book);
+
+        // then
+        assertNotNull(result);
+    }
+
     private Book bookWithContent(String content){
         return Book.builder()
             .title("TEST_BOOK")

@@ -11,12 +11,13 @@ import com.amazonaws.util.IOUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.keendly.model.book.Article;
-import com.keendly.model.book.Book;
+import com.keendly.lang.DateFormatter;
 import com.keendly.model.DeliveryArticle;
 import com.keendly.model.DeliveryItem;
 import com.keendly.model.DeliveryRequest;
 import com.keendly.model.ExtractResult;
+import com.keendly.model.book.Article;
+import com.keendly.model.book.Book;
 import com.keendly.model.book.Section;
 import com.keendly.readingtime.ReadingTimeCalculator;
 import org.slf4j.Logger;
@@ -26,7 +27,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -39,6 +39,7 @@ public class Handler implements RequestHandler<DeliveryRequest, String> {
     private static final String KEY_PATTERN = "ebooks/%s/keendly.tar.gz";
     private static AmazonS3 s3 = new AmazonS3Client();
     private static ReadingTimeCalculator readingTimeCalculator = new ReadingTimeCalculator();
+    private static DateFormatter dateFormatter = new DateFormatter();
 
     @Override
     public String handleRequest(DeliveryRequest input, Context context) {
@@ -92,7 +93,6 @@ public class Handler implements RequestHandler<DeliveryRequest, String> {
                     .id(article.id)
                     .title(article.title)
                     .author(article.author)
-                    .date(article.timestamp != null ? new Date(article.timestamp) : null)
                     .url(article.url);
                 String content;
                 if (articles != null && getArticleText(article.url, articles) != null){
@@ -101,6 +101,7 @@ public class Handler implements RequestHandler<DeliveryRequest, String> {
                     content = article.content;
                 }
                 articleBuilder.content(content);
+                articleBuilder.date(dateFormatter.formatDate(article.timestamp, content, deliveryRequest.timezone));
 
                 if (actionLinks.containsKey(article.id)){
                     for (DeliveryRequest.ActionLink link : actionLinks.get(article.id)){

@@ -8,7 +8,6 @@ import com.keendly.model.book.Article;
 import com.keendly.model.book.Book;
 import com.keendly.model.book.Section;
 import com.keendly.utils.BookUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.xmlunit.builder.Input;
 import org.xmlunit.diff.Diff;
@@ -215,7 +214,6 @@ public class ProcessorTest {
   }
 
   @Test
-  @Ignore
   public void testArticle_qrCode() {
     // given
     Article article = Article.builder()
@@ -231,6 +229,46 @@ public class ProcessorTest {
 
     // then
     assertTheSame(html, "/test-data/article_qrcode.html");
+  }
+
+
+  @Test
+  public void testArticle_date_author() {
+    // given
+    Article article = Article.builder()
+        .title("article_title")
+        .author("Hakuna Matata")
+        .date("05.02.2012 12:10")
+        .content("<div>test</div>")
+        .build();
+
+    // when
+    String html = processor.article(article);
+
+    // then
+    assertTheSame(html, "/test-data/article_date_author.html");
+  }
+
+  @Test
+  public void testArticle_date_author_actions() {
+    // given
+    Map<String, String> actions = new HashMap<>();
+    actions.put("Keep unread", "http://blabla/unread_action");
+    actions.put("Save for later", "http://blabla/save_action");
+
+    Article article = Article.builder()
+        .title("article_title")
+        .author("Hakuna Matata")
+        .date("05.02.2012 12:10")
+        .content("<div>test</div>")
+        .actions(actions)
+        .build();
+
+    // when
+    String html = processor.article(article);
+
+    // then
+    assertTheSame(html, "/test-data/article_date_author_actions.html");
   }
 
   private Book generateBook(){

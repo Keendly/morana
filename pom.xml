@@ -24,6 +24,7 @@
         <aws-lambda.version>1.1.0</aws-lambda.version>
         <log4j-json.version>1.0</log4j-json.version>
         <jcommander.version>1.48</jcommander.version>
+        <mockito.version>1.9.5</mockito.version>
     </properties>
     <repositories>
         <repository>
@@ -162,6 +163,12 @@
             <artifactId>javase</artifactId>
             <version>2.2.0</version>
         </dependency>
+        <!-- ICU -->
+        <dependency>
+            <groupId>com.ibm.icu</groupId>
+            <artifactId>icu4j</artifactId>
+            <version>59.1</version>
+        </dependency>
         <!-- Test -->
         <dependency>
             <groupId>junit</groupId>
@@ -179,6 +186,12 @@
             <groupId>org.xmlunit</groupId>
             <artifactId>xmlunit-matchers</artifactId>
             <version>${xmlunit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

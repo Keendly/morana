@@ -26,4 +26,6 @@ public class DeliveryRequest {
         public String action;
         public String link;
     }
+
+    public String timezone;
 }
