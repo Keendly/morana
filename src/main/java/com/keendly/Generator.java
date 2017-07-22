@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.UUID;
 
 public class Generator {
@@ -33,22 +34,23 @@ public class Generator {
     // instance field to keep track number of images per ebook
     private ImageExtractor imageExtractor = new ImageExtractor();
 
-    public String generate(Book book) throws IOException {
+    public String generate(Book book) throws IOException, URISyntaxException {
 
         BookUtils.setNumbers(book);
         String bookDirectory = UUID.randomUUID().toString();
 
         createBookDirectory(bookDirectory);
+        copyMasthead(bookDirectory);
         saveCover(book, bookDirectory);
         saveDetailsFile(book, bookDirectory);
         saveContentsHTML(book, bookDirectory);
-        saveContentsNCX(book, bookDirectory);
         for (Section section : book.getSections()){
             saveSection(section, bookDirectory);
             for (Article article : section.getArticles()){
                 saveArticle(section, article, bookDirectory);
             }
         }
+        saveContentsNCX(book, bookDirectory);
         imageExtractor.close();
 
         return bookDirectory;
@@ -56,6 +58,11 @@ public class Generator {
 
     private void createBookDirectory(String bookDirectory) throws IOException {
         FileUtils.forceMkdir(new File(bookDirPath(bookDirectory)));
+    }
+
+    private void copyMasthead(String bookDirectory) throws URISyntaxException, IOException {
+        File masthead = new File(getClass().getClassLoader().getResource("images/masthead.gif").toURI());
+        FileUtils.copyFileToDirectory(masthead, new File(bookDirPath(bookDirectory)));
     }
 
     private void saveCover(Book book, String dir) throws IOException {
@@ -96,8 +103,8 @@ public class Generator {
             imageExtractor.extractImages(document, article.getUrl(), sectionPath);
 
             article.setQrCode(qrCodeGenerator.generate(sectionPath, article.getUrl()));
-
             article.setContent(document.body().html());
+            article.setSnippet(Article.extractSnippet(document.body().text()));
         } catch (Exception e){
             LOG.error("Error processing article", e);
         }

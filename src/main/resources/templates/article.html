@@ -1,5 +1,5 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org" >
     <head>
         <meta http-equiv='content-type' content='text/html; charset=UTF-8'/>
         <title th:text="${title}">Lucas – styl życia Dépor</title>
@@ -14,13 +14,14 @@
         <small th:if="${readingTime != null and readingTime > 0}"><span th:text="${readingTime}"></span> min read</small>
         <small th:if="${readingTime != null and readingTime == 0}">less than 1 min read</small>
 
-        <small th:if="${(author != null or date != null or readingTime != null) and not #maps.isEmpty(actions)}"> | </small>
+        <div th:utext="${content}"></div>
+        <hr th:if="${url != null or qrCode != null or not #maps.isEmpty(actions)}" style='border-top: dashed 1px;'/>
+        <small th:if="${url != null}"><a th:href="${url}">Open article website</a></small>
+        <small th:if="${url != null and not #maps.isEmpty(actions)}"> | </small>
         <small th:each="action,iterationStatus : ${actions}">
             <a th:href="${action.value}" th:text="${action.key}"></a>
-            <span th:if="!${iterationStatus.last}"> &#8226; </span>
+            <span th:if="!${iterationStatus.last}"> | </span>
         </small>
-        <div th:utext="${content}"></div>
-        <hr th:if="${qrCode != null}" style='border-top: dashed 1px;'/>
         <span th:if="${qrCode != null}">
             <center><img th:src="${qrCode}"/></center>
         </span>

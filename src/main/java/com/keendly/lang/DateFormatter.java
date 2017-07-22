@@ -34,6 +34,10 @@ public class DateFormatter {
     }
 
     public String formatDate(Long timestamp, String content, String timezone){
+        if (timestamp == null){
+            return null;
+        }
+
         DateTimeFormatter formatter = defaultFormatter();
 
         Optional<LdLocale> lang = languageDetector.detect(content);

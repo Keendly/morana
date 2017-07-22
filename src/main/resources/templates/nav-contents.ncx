@@ -17,7 +17,7 @@
     </docAuthor>
     <navMap>
         <navPoint th:attr="playOrder=${#ids.seq('')}" class="periodical" id="periodical">
-            <mbp:meta-img src="" name="mastheadImage"/>
+            <mbp:meta-img src="masthead.gif" name="mastheadImage"/>
             <navLabel><text>Table of Contents</text></navLabel>
             <content src="contents.html"/>
             <navPoint th:each="section : ${sections}" th:attr="playOrder=${#ids.seq('')}" class="section" th:id="'item-' + ${section.href}">
@@ -26,8 +26,8 @@
                 <navPoint th:each="article : ${section.articles}" th:attr="playOrder=${#ids.seq('')}" class="article" th:id="'item-' + ${section.href} + ${article.href}">
                     <navLabel><text th:text="${article.title}">Lucas – styl życia Dépor</text></navLabel>
                     <content th:src="'sections/' + ${section.href} + '/' + ${article.href} + '.html'"/>
-                    <mbp:meta name="description"></mbp:meta>
-                    <mbp:meta name="author" th:text="${article.author}"></mbp:meta>
+                    <mbp:meta name="description" th:if="${article.snippet != null}" th:text="${article.snippet}"></mbp:meta>
+                    <mbp:meta name="author" th:if="${article.author != null}" th:text="${article.author}"></mbp:meta>
                 </navPoint>
             </navPoint>
         </navPoint>

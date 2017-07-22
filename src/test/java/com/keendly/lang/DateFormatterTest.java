@@ -96,7 +96,7 @@ public class DateFormatterTest {
         String formatted = dateFormatter.formatDate(TIMESTAMP, "blabla", "CET");
 
         // then
-        assertEquals("2017/5/10 上午 12:36", formatted);
+        assertEquals("西暦2017.05.10 0:36", formatted);
     }
 
 //    @Test

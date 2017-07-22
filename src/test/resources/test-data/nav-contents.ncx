@@ -14,7 +14,7 @@
     </docAuthor>
     <navMap>
         <navPoint class="periodical" id="periodical" playOrder="1">
-            <mbp:meta-img src="" name="mastheadImage"/>
+            <mbp:meta-img src="masthead.gif" name="mastheadImage"/>
             <navLabel><text>Table of Contents</text></navLabel>
             <content src="contents.html"/>
             <navPoint class="section" playOrder="2" id="item-000">
@@ -23,13 +23,12 @@
                 <navPoint class="article" playOrder="3" id="item-000000">
                     <navLabel><text>article1</text></navLabel>
                     <content src="sections/000/000.html"/>
-                    <mbp:meta name="description"/>
+                    <mbp:meta name="description">content</mbp:meta>
                     <mbp:meta name="author">author1</mbp:meta>
                 </navPoint>
                 <navPoint class="article" playOrder="4" id="item-000001">
                     <navLabel><text>article2</text></navLabel>
                     <content src="sections/000/001.html"/>
-                    <mbp:meta name="description"/>
                     <mbp:meta name="author">author2</mbp:meta>
                 </navPoint>
             </navPoint>
@@ -39,14 +38,10 @@
                 <navPoint class="article" playOrder="6" id="item-001000">
                     <navLabel><text>article3</text></navLabel>
                     <content src="sections/001/000.html"/>
-                    <mbp:meta name="description"/>
-                    <mbp:meta name="author"/>
                 </navPoint>
                 <navPoint class="article" playOrder="7" id="item-001001">
                     <navLabel><text>article4</text></navLabel>
                     <content src="sections/001/001.html"/>
-                    <mbp:meta name="description"/>
-                    <mbp:meta name="author"/>
                 </navPoint>
             </navPoint>
         </navPoint>

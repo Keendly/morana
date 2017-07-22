@@ -102,7 +102,7 @@ public class ProcessorTest {
   }
 
   @Test
-  public void testAritlce_withActions() {
+  public void testArticle_withActions() {
     // given
     Map<String, String> actions = new HashMap<>();
     actions.put("Keep unread", "http://blabla/unread_action");
@@ -123,7 +123,7 @@ public class ProcessorTest {
   }
 
   @Test
-  public void testAritlce_withActions_noAuthor() {
+  public void testArticle_withActions_noAuthor() {
     // given
     Map<String, String> actions = new HashMap<>();
     actions.put("Keep unread", "http://blabla/unread_action");
@@ -271,6 +271,43 @@ public class ProcessorTest {
     assertTheSame(html, "/test-data/article_date_author_actions.html");
   }
 
+  @Test
+  public void testArticle_url_actions() {
+    // given
+    Map<String, String> actions = new HashMap<>();
+    actions.put("Keep unread", "http://blabla/unread_action");
+    actions.put("Save for later", "http://blabla/save_action");
+
+    Article article = Article.builder()
+        .title("article_title")
+        .url("article_url")
+        .content("<div>test</div>")
+        .actions(actions)
+        .build();
+
+    // when
+    String html = processor.article(article);
+
+    // then
+    assertTheSame(html, "/test-data/article_url_actions.html");
+  }
+
+  @Test
+  public void testArticle_url_noActions() {
+    // given
+    Article article = Article.builder()
+        .title("article_title")
+        .url("article_url")
+        .content("<div>test</div>")
+        .build();
+
+    // when
+    String html = processor.article(article);
+
+    // then
+    assertTheSame(html, "/test-data/article_url_no_actions.html");
+  }
+
   private Book generateBook(){
     Book book = Book.builder()
         .title("TEST_BOOK")
@@ -287,6 +324,7 @@ public class ProcessorTest {
                     Article.builder()
                         .title("article1")
                         .author("author1")
+                        .snippet(Article.extractSnippet("content"))
                         .build(),
                     Article.builder()
                         .title("article2")
