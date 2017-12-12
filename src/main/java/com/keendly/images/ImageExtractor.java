@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.thymeleaf.util.StringUtils;
 
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -160,11 +159,11 @@ public class ImageExtractor {
         ByteArrayInputStream bis = new ByteArrayInputStream(compressed);
 
         // resize
-        BufferedImage input = ImageIO.read(bis);
-        BufferedImage resized = imageResizer.resizeIfNeeded(input);
-
+        //BufferedImage input = ImageIO.read(bis);
+        //BufferedImage resized = imageResizer.resizeIfNeeded(input);
+        
         // save
-        ImageIO.write(resized, "jpg", new File(filePath));
+        ImageIO.write(ImageIO.read(bis), "jpg", new File(filePath));
     }
 
     private void saveAsIs(byte[] image, String filePath) throws IOException {
