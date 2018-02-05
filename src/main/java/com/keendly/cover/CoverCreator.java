@@ -21,7 +21,7 @@ public class CoverCreator {
         BufferedImage image = ImageIO.read(getClass().getClassLoader().getResource("templates/cover.jpg"));
         Graphics g = image.getGraphics();
         g.setColor(Color.black);
-        g.setFont(g.getFont().deriveFont(30f));
+        g.setFont(g.getFont().deriveFont(35f));
         printDate(book, g);
         g.setFont(g.getFont().deriveFont(40f));
         printSectionTitles(book, g);
