@@ -76,6 +76,7 @@ public class Handler implements RequestHandler<DeliveryRequest, String> {
             .subject("News")
             .language("en-GB")
             .sections(new ArrayList<>())
+            .date(dateFormatter.formatDate(deliveryRequest.timestamp, deliveryRequest.timezone))
             .build();
 
         for (DeliveryItem item : deliveryRequest.items){

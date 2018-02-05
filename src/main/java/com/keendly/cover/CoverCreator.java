@@ -20,11 +20,19 @@ public class CoverCreator {
     public void create(Book book, String coverFilePath) throws IOException {
         BufferedImage image = ImageIO.read(getClass().getClassLoader().getResource("templates/cover.jpg"));
         Graphics g = image.getGraphics();
-        g.setFont(g.getFont().deriveFont(40f));
         g.setColor(Color.black);
+        g.setFont(g.getFont().deriveFont(30f));
+        printDate(book, g);
+        g.setFont(g.getFont().deriveFont(40f));
         printSectionTitles(book, g);
         g.dispose();
         ImageIO.write(image, "jpg", new File(coverFilePath));
+    }
+
+    private void printDate(Book book, Graphics graphics) {
+        if (book.getDate() != null) {
+            graphics.drawString(book.getDate(), 100, 200);
+        }
     }
 
     private void printSectionTitles(Book book, Graphics graphics){

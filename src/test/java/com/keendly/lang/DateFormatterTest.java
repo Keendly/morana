@@ -99,6 +99,24 @@ public class DateFormatterTest {
         assertEquals("西暦2017.05.10 0:36", formatted);
     }
 
+    @Test
+    public void given_timezoneCountryNotFound_when_formatDate_then_useDefault() {
+        // when
+        String formatted = dateFormatter.formatDate(TIMESTAMP, "CET");
+
+        // then
+        assertEquals("10-May-2017", formatted);
+    }
+
+    @Test
+    public void given_timezoneCountryFound_when_formatDate_then_useLocalisedFormatter() {
+        // when
+        String formatted = dateFormatter.formatDate(TIMESTAMP, "Europe/Warsaw");
+
+        // then
+        assertEquals("2017-05-10", formatted);
+    }
+
 //    @Test
 //    public void test(){
 //        String text = "A skąd się wziął taki Carvajal w Realu?\n"

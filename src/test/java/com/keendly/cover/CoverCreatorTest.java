@@ -89,6 +89,7 @@ public class CoverCreatorTest {
     private Book generateBook(){
         Book book = Book.builder()
             .title("Keendly")
+            .date("2017-05-10")
             .sections(asList(
                 Section.builder()
                     .title("¡Olé! Magazyn")

@@ -33,18 +33,36 @@ public class DateFormatter {
         this.languageDetector = languageDetector;
     }
 
+    public String formatDate(Long timestamp, String timezone) {
+        DateTimeFormatter formatter = defaultDateFormatter();
+
+        String country = countriesTimezones.get(timezone);
+        if (country != null) {
+            List<Locale> timezoneLocales = new ArrayList<>();
+            for (Locale locale : Locale.getAvailableLocales()) {
+                if (locale.getCountry().equals(country)) {
+                    timezoneLocales.add(locale);
+                }
+            }
+            if (!timezoneLocales.isEmpty()) {
+                formatter = formatter.withLocale(timezoneLocales.get(0));
+            }
+        }
+        return formatter.print(new DateTime(timestamp, DateTimeZone.forID(timezone)));
+    }
+
     public String formatDate(Long timestamp, String content, String timezone){
         if (timestamp == null){
             return null;
         }
 
-        DateTimeFormatter formatter = defaultFormatter();
+        DateTimeFormatter formatter = defaultDateTimeFormatter();
 
         Optional<LdLocale> lang = languageDetector.detect(content);
         if (lang.isPresent()){
             List<Locale> locales = languagesLocales.get(lang.get().getLanguage());
             if (locales == null || locales.isEmpty()){
-               return  formatter.print(new DateTime(timestamp, DateTimeZone.forID(timezone)));
+               return formatter.print(new DateTime(timestamp, DateTimeZone.forID(timezone)));
             }
             if (locales.size() == 1){
                 // awsome use it
@@ -96,7 +114,11 @@ public class DateFormatter {
         return Optional.absent();
     }
 
-    public static DateTimeFormatter defaultFormatter(){
+    public static DateTimeFormatter defaultDateFormatter(){
+        return DateTimeFormat.mediumDate().withLocale(Locale.forLanguageTag("en-GB"));
+    }
+
+    public static DateTimeFormatter defaultDateTimeFormatter(){
         return DateTimeFormat.shortDateTime().withLocale(Locale.forLanguageTag("en-GB"));
     }
 
@@ -126,7 +148,6 @@ public class DateFormatter {
             for (String id : com.ibm.icu.util.TimeZone.getAvailableIDs(countryCode))
             {
                 // Add timezone to result map
-
                 timezoneToCountry.put(id, countryCode);
             }
 
