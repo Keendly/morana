@@ -31,7 +31,7 @@ public class CoverCreator {
 
     private void printDate(Book book, Graphics graphics) {
         if (book.getDate() != null) {
-            graphics.drawString(book.getDate(), 100, 200);
+            graphics.drawString(book.getDate(), 100, 190);
         }
     }
 
