@@ -20,7 +20,7 @@
         <async-http-client.version>1.9.38</async-http-client.version>
         <apache-tika.version>1.9</apache-tika.version>
         <imgscalr.version>4.2</imgscalr.version>
-        <aws-sdk.version>1.10.52</aws-sdk.version>
+        <aws-sdk.version>1.12.261</aws-sdk.version>
         <aws-lambda.version>1.1.0</aws-lambda.version>
         <log4j-json.version>1.0</log4j-json.version>
         <jcommander.version>1.48</jcommander.version>
